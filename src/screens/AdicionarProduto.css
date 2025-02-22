@@ -1,0 +1,87 @@
+.product-form-container {
+    display: flex;
+    padding: 20px;
+    border-radius: 10px;
+    background-color: #f8f8f8;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.upload-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-right: 20px;
+}
+
+.upload-box {
+    width: 120px;
+    height: 120px;
+    border: 2px dashed #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 10px;
+    background-color: #e0e0e0;
+}
+
+.upload-button {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.form-section {
+    flex: 1;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+}
+
+textarea {
+    height: 60px;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.variant-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.add-variant-button {
+    padding: 10px;
+    background-color: #ddd;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* 0000000000 RESPONSIVIDADE 0000000000000 */
