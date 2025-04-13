@@ -4,10 +4,9 @@ import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
 import { Bar, Pie, Line, Radar, PolarArea } from 'react-chartjs-2';
 import IconeHome from '../icones/icone-home.svg';
-import IconeOpcoes from '../icones/icone-opcoes.svg';
-import IconeAgenda from '../icones/icone-agenda.svg';
-import IconeCaderno from '../icones/icone-caderno.svg';
-import Logo from '../images/output-onlinepngtools-logo.png';
+import IconeEstoque from '../icones/iconeEstoque.jpeg';
+import IconeAdd from '../icones/iconeAdd.jpeg';
+import Logo from '../images/logoSemFundo.png';
 
 // Importando e registrando componentes necessários do Chart.js
 import {
@@ -347,10 +346,8 @@ export const Home = () => {
             <aside className="sidebar">
                 {/* Sidebar conteúdo */}
                 <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>                <img src={Logo} style={{ width: '140%' }} /></a>
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px', marginTop: '60px' }}>                <img src={IconeHome} style={{ width: '60%' }} /></a>
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeOpcoes} style={{ width: '60%' }} /></a>
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAgenda} style={{ width: '60%' }} /></a>
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeCaderno} style={{ width: '60%' }} /></a>
+                <a href='/adicionarproduto' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
+                <a href='/estoque' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
             </aside>
             <main className="dashboard-main">
                 <button onClick={handleLogout} className="logout-button">Sair</button>

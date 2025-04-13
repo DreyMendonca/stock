@@ -41,7 +41,7 @@
 .login-button {
     width: 100%;
     padding: 10px;
-    background-color: #6200ea;
+    background-color: #0b4983;
     color: white;
     border: none;
     border-radius: 5px;
@@ -60,7 +60,7 @@
 }
 
 .register-link a {
-    color: #6200ea;
+    color: #0b4983;
     text-decoration: none;
 }
 

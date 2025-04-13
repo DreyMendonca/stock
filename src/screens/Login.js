@@ -4,7 +4,7 @@ import { auth } from '../firebase';
 import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import ImagemLogin from '../images/image-login-cadastro.png';
-import LogoImagemLogin from '../images/output-onlinepngtools-logo.png';
+import LogoImagemLogin from '../images/logoSemFundo.png';
 import IconeOlho from '../icones/icone-olho.png'; // Importando o ícone do olho
 
 export const Login = () => {

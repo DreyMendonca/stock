@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { storage } from '../firebase'; // Certifique-se de importar
 import { db, auth } from '../firebase';
 import { collection, getDocs, updateDoc, doc, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Estoque.css';
 import qrCodeImage from '../images/imagem-pagamento.jpeg';
+
 
 export const Estoque = () => {
     const [produtos, setProdutos] = useState([]);
@@ -17,7 +20,9 @@ export const Estoque = () => {
     const [paymentCompleted, setPaymentCompleted] = useState(false);
     const [editingProductId, setEditingProductId] = useState(null); // Estado para controle de edição
     const [editedProductData, setEditedProductData] = useState({}); // Dados do produto sendo editado
+    const [imagem, setImagem] = useState(null);  // Armazena o arquivo de imagem 
     const navigate = useNavigate();
+    
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -31,6 +36,13 @@ export const Estoque = () => {
 
         return () => unsubscribe();
     }, [navigate]);
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setImagem(file);
+        }
+    };
 
     const fetchProdutos = async (userId) => {
         try {
@@ -206,16 +218,33 @@ export const Estoque = () => {
     };
 
     const handleSaveEdit = async () => {
-        const produtoRef = doc(db, 'produtos', editingProductId);
-        await updateDoc(produtoRef, {
-            nome: editedProductData.nome,
-            categoria: editedProductData.categoria,
-            preco: editedProductData.preco,
-            quantidade: editedProductData.quantidade
-        });
-        setEditingProductId(null);
-        setEditedProductData({});
-        fetchProdutos(user.uid); // Recarregar a lista de produtos
+        try {
+            let novaImagemUrl = editedProductData.imagem;
+    
+            if (imagem) {
+                const imagemRef = ref(storage, `produtos/${imagem.name}`);
+                const snapshot = await uploadBytes(imagemRef, imagem);
+                novaImagemUrl = await getDownloadURL(snapshot.ref);
+            }
+    
+            const produtoRef = doc(db, 'produtos', editingProductId);
+            await updateDoc(produtoRef, {
+                nome: editedProductData.nome,
+                categoria: editedProductData.categoria,
+                preco: editedProductData.preco,
+                quantidade: editedProductData.quantidade,
+                desconto: editedProductData.desconto || '',
+                imagem: novaImagemUrl || ''
+            });
+    
+            setEditingProductId(null);
+            setEditedProductData({});
+            setImagem(null);
+            fetchProdutos(user.uid); // Recarrega a lista após edição
+        } catch (error) {
+            console.error('Erro ao salvar edição:', error);
+            alert('Erro ao salvar as alterações do produto.');
+        }
     };
 
     const filteredProdutos = produtos.filter(produto =>
@@ -313,6 +342,18 @@ export const Estoque = () => {
                             type="number"
                             value={editedProductData.quantidade}
                             onChange={(e) => setEditedProductData({ ...editedProductData, quantidade: e.target.value })}
+                        />
+                        Desconto %  :
+                        <input
+                            type="number"
+                            value={editedProductData.desconto}
+                            onChange={(e) => setEditedProductData({ ...editedProductData, desconto: e.target.value })}
+                        />
+                        Imagem :
+                        <input
+                            type="file"
+                            onChange={handleImageChange}
+
                         />
                     </label>
                     <div>
