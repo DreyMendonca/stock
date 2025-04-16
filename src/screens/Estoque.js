@@ -7,6 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import './Estoque.css';
 import qrCodeImage from '../images/imagem-pagamento.jpeg';
 import { deleteDoc } from 'firebase/firestore'; // Importe o deleteDoc
+import IconeEstoque from '../icones/iconeEstoque.jpeg';
+import IconeAdd from '../icones/iconeAdd.jpeg';
+import Logo from '../images/logoSemFundo.png';
 
 
 export const Estoque = () => {
@@ -283,6 +286,11 @@ export const Estoque = () => {
 
     return (
         <div className="estoque-container">
+            <aside className="sidebar">
+                            <a href='/'>                <img src={Logo} style={{ width: '140%' }} /></a>
+                            <a href='/adicionarproduto' style={{ display: 'absolute', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
+                            <a href='/estoque' style={{ display: 'absolute', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+                        </aside>
             <h1>Estoque</h1>
             <input
                 type="text"

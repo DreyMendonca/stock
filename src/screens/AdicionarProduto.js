@@ -4,6 +4,9 @@ import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import './AdicionarProduto.css';
+import IconeEstoque from '../icones/iconeEstoque.jpeg';
+import IconeAdd from '../icones/iconeAdd.jpeg';
+import Logo from '../images/logoSemFundo.png';
 
 export const AdicionarProduto = () => {
     const [produto, setProduto] = useState({
@@ -127,6 +130,11 @@ export const AdicionarProduto = () => {
 
     return (
         <div className="product-form-container">
+            <aside className="sidebar">
+                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>                <img src={Logo} style={{ width: '140%' }} /></a>
+                <a href='/adicionarproduto' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
+                <a href='/estoque' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+            </aside>
             <div className="upload-section">
                 <input type="file" onChange={handleImageChange} />
             </div>
