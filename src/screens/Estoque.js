@@ -6,6 +6,7 @@ import { collection, getDocs, updateDoc, doc, addDoc } from 'firebase/firestore'
 import { useNavigate } from 'react-router-dom';
 import './Estoque.css';
 import qrCodeImage from '../images/imagem-pagamento.jpeg';
+import { deleteDoc } from 'firebase/firestore'; // Importe o deleteDoc
 
 
 export const Estoque = () => {
@@ -22,7 +23,7 @@ export const Estoque = () => {
     const [editedProductData, setEditedProductData] = useState({}); // Dados do produto sendo editado
     const [imagem, setImagem] = useState(null);  // Armazena o arquivo de imagem 
     const navigate = useNavigate();
-    
+
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -201,6 +202,23 @@ export const Estoque = () => {
         }
     };
 
+    const handleDelete = async (produtoId) => {
+        if (window.confirm('Tem certeza que deseja excluir este produto?')) {
+            try {
+                // Exclui o produto do Firestore
+                const produtoRef = doc(db, 'produtos', produtoId);
+                await deleteDoc(produtoRef);
+    
+                // Atualiza a lista de produtos após a exclusão
+                setProdutos((prevProdutos) => prevProdutos.filter((produto) => produto.id !== produtoId));
+    
+                alert('Produto excluído com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir produto:', error);
+                alert('Erro ao excluir o produto.');
+            }
+        }
+    };
 
     const handleEditClick = (produto) => {
         setEditingProductId(produto.id);
@@ -208,7 +226,9 @@ export const Estoque = () => {
             nome: produto.nome,
             categoria: produto.categoria,
             preco: produto.preco,
-            quantidade: produto.quantidade
+            quantidade: produto.quantidade,
+            desconto: produto.desconto,
+            imagem: produto.imagem || ''
         });
     };
 
@@ -219,12 +239,10 @@ export const Estoque = () => {
 
     const handleSaveEdit = async () => {
         try {
-            let novaImagemUrl = editedProductData.imagem;
+            let novaImagemUrl = imagem ? await uploadImagem() : editedProductData.imagem;
     
-            if (imagem) {
-                const imagemRef = ref(storage, `produtos/${imagem.name}`);
-                const snapshot = await uploadBytes(imagemRef, imagem);
-                novaImagemUrl = await getDownloadURL(snapshot.ref);
+            if (!novaImagemUrl) {
+                throw new Error('A imagem do produto é obrigatória.');
             }
     
             const produtoRef = doc(db, 'produtos', editingProductId);
@@ -234,17 +252,25 @@ export const Estoque = () => {
                 preco: editedProductData.preco,
                 quantidade: editedProductData.quantidade,
                 desconto: editedProductData.desconto || '',
-                imagem: novaImagemUrl || ''
+                imagem: novaImagemUrl
             });
     
             setEditingProductId(null);
             setEditedProductData({});
             setImagem(null);
-            fetchProdutos(user.uid); // Recarrega a lista após edição
+            fetchProdutos(user.uid);
         } catch (error) {
             console.error('Erro ao salvar edição:', error);
             alert('Erro ao salvar as alterações do produto.');
         }
+    };
+    
+
+
+    const uploadImagem = async () => {
+        const imagemRef = ref(storage, `produtos/${imagem.name}`);
+        const snapshot = await uploadBytes(imagemRef, imagem);
+        return getDownloadURL(snapshot.ref);
     };
 
     const filteredProdutos = produtos.filter(produto =>
@@ -303,6 +329,9 @@ export const Estoque = () => {
                                 <button onClick={() => handleEditClick(produto)} className="edit-button">
                                     <i className="fa fa-pencil"></i> Editar
                                 </button>
+                                <button onClick={() => handleDelete(produto.id)} className="delete-button">
+                                    <i className="fa fa-trash"></i> Excluir
+                                </button>
                             </td>
                         </tr>
                     ))}
@@ -353,7 +382,6 @@ export const Estoque = () => {
                         <input
                             type="file"
                             onChange={handleImageChange}
-
                         />
                     </label>
                     <div>

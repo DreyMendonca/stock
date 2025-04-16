@@ -36,16 +36,16 @@ export const Login = () => {
         }
     };
 
-    const handleGoogleLogin = async () => {
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            alert('Login com Google realizado com sucesso!');
-            navigate('/home');
-        } catch (error) {
-            console.error('Erro ao fazer login com Google: ', error);
-            alert('Erro ao fazer login com Google');
-        }
-    };
+    // const handleGoogleLogin = async () => {
+    //     try {
+    //         const result = await signInWithPopup(auth, googleProvider);
+    //         alert('Login com Google realizado com sucesso!');
+    //         navigate('/home');
+    //     } catch (error) {
+    //         console.error('Erro ao fazer login com Google: ', error);
+    //         alert('Erro ao fazer login com Google');
+    //     }
+    // };
 
     const toggleMostrarSenha = () => {
         setMostrarSenha(!mostrarSenha);
@@ -92,14 +92,14 @@ export const Login = () => {
                         />
                     </div>
                     <button className="register-button" type="submit">Entrar</button>
-                    <div className="social-buttons">
+                    {/* <div className="social-buttons">
                         <i className="fab fa-google" onClick={handleGoogleLogin}></i>
                     </div>
                     <div className="google-login">
                         <button className="btn google-btn" onClick={handleGoogleLogin}>
                             <i className="fab fa-google"></i> Entrar com Google
                         </button>
-                    </div>
+                    </div> */}
                     <p className="login-link">Não tem uma conta? <a href="/cadastro">Registre-se</a></p>
                 </form>
             </div>

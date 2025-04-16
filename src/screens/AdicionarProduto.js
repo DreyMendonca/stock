@@ -186,6 +186,7 @@ export const AdicionarProduto = () => {
                     </div>
                 </div>
 
+                <div className="form-group">
                 <label>Categoria</label>
                 <select
                     name="categoria"
@@ -197,6 +198,7 @@ export const AdicionarProduto = () => {
                         <option key={index} value={cat}>{cat}</option>
                     ))}
                 </select>
+                </div>
 
                 <button
                     className="btn criar-categoria-btn"
