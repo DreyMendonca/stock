@@ -28,6 +28,15 @@ export const AdicionarProduto = () => {
 
     const navigate = useNavigate();
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setProduto((prevProduto) => ({
+            ...prevProduto,
+            [name]: value
+        }));
+    };
+
+
     // Verifica se o usuário está logado
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -44,9 +53,12 @@ export const AdicionarProduto = () => {
     // Busca categorias salvas no Firebase ao carregar o componente
     useEffect(() => {
         const fetchCategorias = async () => {
+            if (!user) return; // aguarda o usuário estar carregado
             try {
                 const querySnapshot = await getDocs(collection(db, 'categorias'));
-                const categoriasFirebase = querySnapshot.docs.map(doc => doc.data().nome);
+                const categoriasFirebase = querySnapshot.docs
+                    .filter(doc => doc.data().userId === user.uid)
+                    .map(doc => doc.data().nome);
                 setCategorias(categoriasFirebase);
             } catch (error) {
                 console.error('Erro ao buscar categorias:', error);
@@ -54,15 +66,8 @@ export const AdicionarProduto = () => {
         };
 
         fetchCategorias();
-    }, []);
+    }, [user]); // <--- Importante adicionar user como dependência
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setProduto({
-            ...produto,
-            [name]: value
-        });
-    };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -114,7 +119,11 @@ export const AdicionarProduto = () => {
         if (nomeCategoria) {
             try {
                 // Salva no Firebase
-                await addDoc(collection(db, 'categorias'), { nome: nomeCategoria });
+                await addDoc(collection(db, 'categorias'), {
+                    nome: nomeCategoria,
+                    userId: user.uid
+                });
+
 
                 // Atualiza localmente
                 setCategorias([...categorias, nomeCategoria]);
@@ -195,17 +204,17 @@ export const AdicionarProduto = () => {
                 </div>
 
                 <div className="form-group">
-                <label>Categoria</label>
-                <select
-                    name="categoria"
-                    value={produto.categoria}
-                    onChange={handleChange}
-                >
-                    <option value="">Selecione uma categoria</option>
-                    {categorias.map((cat, index) => (
-                        <option key={index} value={cat}>{cat}</option>
-                    ))}
-                </select>
+                    <label>Categoria</label>
+                    <select
+                        name="categoria"
+                        value={produto.categoria}
+                        onChange={handleChange}
+                    >
+                        <option value="">Selecione uma categoria</option>
+                        {categorias.map((cat, index) => (
+                            <option key={index} value={cat}>{cat}</option>
+                        ))}
+                    </select>
                 </div>
 
                 <button
