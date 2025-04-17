@@ -3,8 +3,10 @@ import './Cadastro.css';
 import { db, auth } from '../firebase'; // Importação do Firebase Auth e Firestore
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
-import ImagemCadastro from '../images/image-login-cadastro.png';
-import LogoImagemLogin from '../images/output-onlinepngtools-logo.png';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import LogoEstocaAi from "../images/LogoEstocaAi.svg";
+import img_login from "../images/img_login (1).svg";
 
 export const Cadastro = () => {
     const [formData, setFormData] = useState({
@@ -42,19 +44,19 @@ export const Cadastro = () => {
 
         // Verificação de senha
         if (formData.senha !== formData.confirmarSenha) {
-            alert('As senhas não coincidem');
+            toast.error('As senhas não coincidem');
             return;
         }
 
         // Validação de e-mail
         if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            alert('Por favor, insira um e-mail válido');
+            toast.error('Por favor, insira um e-mail válido');
             return;
         }
 
         // Validação de senha
         if (formData.senha.length < 6) {
-            alert('A senha deve ter pelo menos 6 caracteres');
+            toast.error('A senha deve ter pelo menos 6 caracteres');
             return;
         }
 
@@ -73,7 +75,7 @@ export const Cadastro = () => {
                 uid: user.uid // Salvando o UID do usuário para referência
             });
 
-            alert('Cadastro realizado com sucesso!');
+            toast.success('Cadastro realizado com sucesso!');
             setFormData({
                 usuario: '',
                 email: '',
@@ -83,7 +85,7 @@ export const Cadastro = () => {
             });
         } catch (error) {
             console.error('Erro ao registrar usuário: ', error);
-            alert('Erro ao registrar usuário');
+            toast.error('Erro ao registrar usuário');
         }
     };
 
@@ -107,23 +109,29 @@ export const Cadastro = () => {
                 });
             }
 
-            alert('Login com Google realizado com sucesso!');
+            toast.success('Login com Google realizado com sucesso!');
         } catch (error) {
             console.error('Erro ao fazer login com Google:', error);
-            alert('Erro ao fazer login com Google');
+            toast.error('Erro ao fazer login com Google');
         }
     };
 
     return (
-        <div className="register-container" style={{ marginTop: '-40px' }}>
+        <div className="main_conteiner">
+        <div className="register-container" >
             <div className="register-form">
-                <img src={LogoImagemLogin} width={250} />
-                <h2>Registro</h2>
+            <div className="logo">
+            <img src={LogoEstocaAi} width={150} alt="Logo" />
+          </div>
+                <div className="login-title">
+            <div class="barra"></div>
+            <h1>Cadastro</h1>
+          </div>
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
                         <input
                             type="text"
-                            placeholder="NOME LOJA"
+                            placeholder="Nome da loja"
                             name="usuario"
                             value={formData.usuario}
                             onChange={handleChange}
@@ -133,7 +141,7 @@ export const Cadastro = () => {
                     <div className="form-group">
                         <input
                             type="email"
-                            placeholder="EMAIL"
+                            placeholder="Email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
@@ -143,7 +151,7 @@ export const Cadastro = () => {
                     <div className="form-group phone-group">
                         <input
                             type="tel"
-                            placeholder="TELEFONE"
+                            placeholder="Telefone"
                             name="telefone"
                             value={formData.telefone}
                             onChange={handleChange}
@@ -153,7 +161,7 @@ export const Cadastro = () => {
                     <div className="form-group">
                         <input
                             type="password"
-                            placeholder="SENHA"
+                            placeholder="Senha"
                             name="senha"
                             value={formData.senha}
                             onChange={handleChange}
@@ -163,7 +171,7 @@ export const Cadastro = () => {
                     <div className="form-group">
                         <input
                             type="password"
-                            placeholder="CONFIRMAR SENHA"
+                            placeholder="Confirmar senha"
                             name="confirmarSenha"
                             value={formData.confirmarSenha}
                             onChange={handleChange}
@@ -178,16 +186,32 @@ export const Cadastro = () => {
                     </div>
                     <p className="login-link">Já tem uma conta? <a href="/login">Faça Login!</a></p>
                 </form>
-                <div className="google-login">
+                {/* <div className="google-login">
                     <button className="btn google-btn" onClick={handleGoogleLogin}>
                         <i className="fab fa-google"></i> Entrar com Google
-                    </button>
+                    </button> */}
+
                 </div>
             </div>
-            <div className="register-image">
-                <img src={ImagemCadastro} alt="imagem" />
+            
+            <div className="right_side">
+                            <div className="conteiner">
+                              <div className="conteiner_1">
+                                <div className="conteiner_2">
+                                  <h2>
+                                    Controle seu estoque com um clique,
+                                    <br />
+                                    organize seu mundo de negócios!
+                                  </h2>
+                                  <img src={img_login} alt="img_login" />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
             </div>
-        </div>
+         
+           
+        
     );
 };
 
