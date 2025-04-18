@@ -1,3 +1,37 @@
+.sidebar {
+    width: 80px;
+    /* background-color: #4a148c; */
+    /* Cor roxa da barra lateral */
+    color: white;
+    display: absolute;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 0;
+}
+
+.sidebar-icon {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.menu-item {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.menu-item.active {
+    background-color: #0b4983;
+    /* Destaque para o item ativo */
+    border-radius: 50%;
+    padding: 10px;
+}
+
 .estoque-container {
     padding: 20px;
 }
@@ -414,4 +448,18 @@ h1 {
 
 .edit-form button:hover {
     background-color: #7300ff;
+}
+
+.delete-button {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-left: 10px;
+}
+
+.delete-button:hover {
+    background-color: darkred;
 }

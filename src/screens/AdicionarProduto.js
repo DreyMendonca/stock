@@ -4,6 +4,9 @@ import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import './AdicionarProduto.css';
+import IconeEstoque from '../icones/iconeEstoque.jpeg';
+import IconeAdd from '../icones/iconeAdd.jpeg';
+import Logo from '../images/logoSemFundo.png';
 
 export const AdicionarProduto = () => {
     const [produto, setProduto] = useState({
@@ -25,6 +28,15 @@ export const AdicionarProduto = () => {
 
     const navigate = useNavigate();
 
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setProduto((prevProduto) => ({
+            ...prevProduto,
+            [name]: value
+        }));
+    };
+
+
     // Verifica se o usuário está logado
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -41,9 +53,12 @@ export const AdicionarProduto = () => {
     // Busca categorias salvas no Firebase ao carregar o componente
     useEffect(() => {
         const fetchCategorias = async () => {
+            if (!user) return; // aguarda o usuário estar carregado
             try {
                 const querySnapshot = await getDocs(collection(db, 'categorias'));
-                const categoriasFirebase = querySnapshot.docs.map(doc => doc.data().nome);
+                const categoriasFirebase = querySnapshot.docs
+                    .filter(doc => doc.data().userId === user.uid)
+                    .map(doc => doc.data().nome);
                 setCategorias(categoriasFirebase);
             } catch (error) {
                 console.error('Erro ao buscar categorias:', error);
@@ -51,15 +66,8 @@ export const AdicionarProduto = () => {
         };
 
         fetchCategorias();
-    }, []);
+    }, [user]); // <--- Importante adicionar user como dependência
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setProduto({
-            ...produto,
-            [name]: value
-        });
-    };
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -111,7 +119,11 @@ export const AdicionarProduto = () => {
         if (nomeCategoria) {
             try {
                 // Salva no Firebase
-                await addDoc(collection(db, 'categorias'), { nome: nomeCategoria });
+                await addDoc(collection(db, 'categorias'), {
+                    nome: nomeCategoria,
+                    userId: user.uid
+                });
+
 
                 // Atualiza localmente
                 setCategorias([...categorias, nomeCategoria]);
@@ -127,6 +139,11 @@ export const AdicionarProduto = () => {
 
     return (
         <div className="product-form-container">
+            <aside className="sidebar">
+                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>                <img src={Logo} style={{ width: '140%' }} /></a>
+                <a href='/adicionarproduto' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
+                <a href='/estoque' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+            </aside>
             <div className="upload-section">
                 <input type="file" onChange={handleImageChange} />
             </div>
@@ -186,17 +203,19 @@ export const AdicionarProduto = () => {
                     </div>
                 </div>
 
-                <label>Categoria</label>
-                <select
-                    name="categoria"
-                    value={produto.categoria}
-                    onChange={handleChange}
-                >
-                    <option value="">Selecione uma categoria</option>
-                    {categorias.map((cat, index) => (
-                        <option key={index} value={cat}>{cat}</option>
-                    ))}
-                </select>
+                <div className="form-group">
+                    <label>Categoria</label>
+                    <select
+                        name="categoria"
+                        value={produto.categoria}
+                        onChange={handleChange}
+                    >
+                        <option value="">Selecione uma categoria</option>
+                        {categorias.map((cat, index) => (
+                            <option key={index} value={cat}>{cat}</option>
+                        ))}
+                    </select>
+                </div>
 
                 <button
                     className="btn criar-categoria-btn"

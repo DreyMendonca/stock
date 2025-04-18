@@ -5,6 +5,8 @@ import AdicionarProduto from './screens/AdicionarProduto';
 import Cadastro from './screens/Cadastro';
 import Login from './screens/Login';
 import Estoque from './screens/Estoque';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -20,6 +22,17 @@ function App() {
           <Route path="/Estoque" element={<Estoque />} />
         </Routes>
       </Router>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </>
   );
 }
