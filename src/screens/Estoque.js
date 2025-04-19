@@ -285,7 +285,9 @@ export const Estoque = () => {
                                 key={produto.id}
                                 className={isEstoqueBaixo ? 'estoque-baixo' : ''}
                             >
-                                <td><img src={produto.imagem} alt="Produto" style={{ width: '50px' }} /></td>
+                                <td>
+                                {produto.imagem && <img style={{ width: '120px' }} src={produto.imagem} alt={produto.nome} className="product-image" />}
+                                </td>
                                 <td>{produto.id}</td>
                                 <td>{produto.nome}</td>
                                 <td>{produto.categoria}</td>
@@ -305,8 +307,12 @@ export const Estoque = () => {
                                     />
                                 </td>
                                 <td>
-                                    <button onClick={() => handleEditClick(produto)}>Editar</button>
-                                    <button onClick={() => handleDelete(produto.id)}>Excluir</button>
+                                <button onClick={() => handleEditClick(produto)} className="edit-button">
+                                    <i className="fa fa-pencil"></i> Editar
+                                </button>
+                                <button onClick={() => handleDelete(produto.id)} className="delete-button">
+                                    <i className="fa fa-pencil"></i> Excluir
+                                </button>
                                 </td>
                             </tr>
                         );

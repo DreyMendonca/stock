@@ -91,10 +91,25 @@ export const AdicionarProduto = () => {
             }
 
             await addDoc(collection(db, 'produtos'), {
-                ...produto,
+                nome: produto.nome,
+                preco: parseFloat(produto.preco),
+                desconto: parseFloat(produto.desconto),
+                quantidade: parseInt(produto.quantidade),
+                sku: produto.sku,
+                categoria: produto.categoria,
+                variantes: produto.variantes,
                 imagem: imagemUrl,
-                userId: user.uid
+                userId: user.uid,
+                criadoEm: new Date()
             });
+
+            await addDoc(collection(db, 'historicoEntradas'), {
+                nome: produto.nome,
+                quantidade: parseInt(produto.quantidade),
+                userId: user.uid,
+                data: new Date()
+            });
+
 
             alert('Produto adicionado com sucesso!');
             setProduto({

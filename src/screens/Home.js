@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Bar, Pie, Line, Radar, PolarArea } from 'react-chartjs-2';
 import IconeHome from '../icones/icone-home.svg';
 import IconeEstoque from '../icones/iconeEstoque.jpeg';
@@ -42,6 +42,8 @@ export const Home = () => {
     const [nomeUsuario, setNomeUsuario] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [historicoVendas, setHistoricoVendas] = useState([]);
+    const [historicoEntradas, setHistoricoEntradas] = useState([]);
+
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -56,6 +58,57 @@ export const Home = () => {
         return () => unsubscribe();
     }, []);
 
+    const exportarCSV = (dados, nomeArquivo = 'dados.csv') => {
+        const csvRows = [];
+
+        // Adiciona o cabeçalho
+        const headers = Object.keys(dados[0]);
+        csvRows.push(headers.join(','));
+
+        // Adiciona os dados
+        for (const row of dados) {
+            const values = headers.map(header => {
+                const escaped = ('' + row[header]).replace(/"/g, '\\"');
+                return `"${escaped}"`;
+            });
+            csvRows.push(values.join(','));
+        }
+
+        // Cria o arquivo CSV e ativa o download
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeArquivo;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+    };
+
+    const entradasFormatadas = historicoEntradas.map((entrada) => ({
+        nome: entrada.nome,
+        quantidade: entrada.quantidade,
+        data: entrada.data ? entrada.data.toDate().toLocaleString() : 'Sem data', // Formata a data
+    }));
+
+    const limparHistoricoEntradas = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'historicoEntradas'));
+
+            const deletePromises = querySnapshot.docs.map((documento) =>
+                deleteDoc(doc(db, 'historicoEntradas', documento.id))
+            );
+
+            await Promise.all(deletePromises);
+
+            alert('Histórico de entradas limpo com sucesso!');
+        } catch (error) {
+            console.error('Erro ao limpar histórico: ', error);
+            alert('Erro ao limpar o histórico.');
+        }
+    };
 
     const fetchProdutos = async (userId) => {
         try {
@@ -85,6 +138,19 @@ export const Home = () => {
             console.error('Erro ao buscar nome de usuário:', error);
         }
     };
+
+    const fetchHistoricoEntradas = async (userId) => {
+        try {
+            const entradasSnapshot = await getDocs(collection(db, 'historicoEntradas'));
+            const entradasArray = entradasSnapshot.docs
+                .map(doc => doc.data())
+                .filter(entrada => entrada.userId === userId);
+            setHistoricoEntradas(entradasArray);
+        } catch (error) {
+            console.error('Erro ao buscar histórico de entradas:', error);
+        }
+    };
+
     const fetchHistoricoVendas = async (userId) => {
         try {
             const vendasSnapshot = await getDocs(collection(db, 'historicoVendas'));
@@ -98,6 +164,7 @@ export const Home = () => {
     };
 
 
+
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (currentUser) {
@@ -105,6 +172,7 @@ export const Home = () => {
                 fetchProdutos(currentUser.uid);
                 fetchNomeUsuario(currentUser.uid);
                 fetchHistoricoVendas(currentUser.uid); // Passa o userId ao buscar o histórico de vendas
+                fetchHistoricoEntradas(currentUser.uid);
             }
         });
 
@@ -245,6 +313,49 @@ export const Home = () => {
             ],
         };
     };
+
+    const getEntradasPorDia = () => {
+        const entradasPorProduto = {};
+
+        historicoEntradas.forEach((entrada) => {
+            const dataEntrada = entrada.data ? new Date(entrada.data.toDate()).toLocaleDateString('pt-BR') : 'Data inválida';
+            const nomeProduto = entrada.nomeProduto;
+
+            if (!entradasPorProduto[nomeProduto]) {
+                entradasPorProduto[nomeProduto] = {};
+            }
+
+            if (!entradasPorProduto[nomeProduto][dataEntrada]) {
+                entradasPorProduto[nomeProduto][dataEntrada] = 0;
+            }
+
+            entradasPorProduto[nomeProduto][dataEntrada] += entrada.quantidade;
+        });
+
+        // Pegar todas as datas únicas
+        const todasAsDatas = Array.from(
+            new Set(Object.values(entradasPorProduto).flatMap(produto => Object.keys(produto)))
+        ).sort((a, b) => {
+            const [d1, m1, y1] = a.split('/');
+            const [d2, m2, y2] = b.split('/');
+            return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
+        });
+
+        // Criar datasets para cada produto
+        const datasets = Object.entries(entradasPorProduto).map(([produto, datas]) => ({
+            label: produto,
+            data: todasAsDatas.map(data => datas[data] || 0),
+            backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.6)`,
+            borderColor: 'rgba(0, 0, 0, 0.5)',
+            borderWidth: 1
+        }));
+
+        return {
+            labels: todasAsDatas,
+            datasets
+        };
+    };
+
 
 
     const handleLogout = () => {
@@ -390,6 +501,30 @@ export const Home = () => {
                             <p>Nenhuma venda registrada.</p>
                         )}
                     </section>
+
+                    <section className="historico-entradas stock-summary">
+                        <h2>Histórico de Entradas</h2>
+                        <div className="botoes-container">
+                            <button className='button-csv' onClick={() => exportarCSV(entradasFormatadas, 'entradas.csv')}>Baixar CSV</button>
+                            <button className='limpar-historico-btn' onClick={limparHistoricoEntradas}>Limpar Histórico</button>
+                        </div>
+
+
+                        {historicoEntradas.length > 0 ? (
+                            <ul>
+                                {historicoEntradas.map((entrada, index) => (
+                                    <li key={index}>
+                                        Produto: {entrada.nome} - Quantidade: {entrada.quantidade} -
+                                        Data: {entrada.data ? new Date(entrada.data.toDate()).toLocaleDateString() : 'Data indisponível'}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>Nenhuma entrada registrada.</p>
+                        )}
+                    </section>
+
+
 
                     <section className="grafico-pizza stock-summary">
                         <h2>Produtos Mais Vendidos</h2>

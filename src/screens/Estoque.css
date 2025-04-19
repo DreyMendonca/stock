@@ -51,11 +51,6 @@
     color: white;
 }
 
-
-
-
-
-
 .product-table {
     width: 100%;
     border-collapse: collapse;
@@ -110,12 +105,12 @@ h1 {
 }
 
 .delete-btn {
-    /* background-color: #f44336; */
+    background-color: #f44336;
     color: white;
 }
 
 .edit-btn {
-    /* background-color: #ff9800; */
+    background-color: #ff9800; 
     color: white;
 }
 
@@ -344,6 +339,7 @@ h1 {
     cursor: pointer;
 }
 
+
 .edit-button:hover {
     background-color: #7300ff;
 }
@@ -458,6 +454,7 @@ h1 {
     cursor: pointer;
     font-size: 14px;
     margin-left: 10px;
+    border-radius: 5px;
 }
 
 .delete-button:hover {
