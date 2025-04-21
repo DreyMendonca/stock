@@ -96,6 +96,14 @@ export const AdicionarProduto = () => {
                 userId: user.uid
             });
 
+            await addDoc(collection(db, 'historicoEntradas'), {
+                nome: produto.nome,
+                quantidade: parseInt(produto.quantidade),
+                userId: user.uid,
+                data: new Date()
+            });
+            
+
             alert('Produto adicionado com sucesso!');
             setProduto({
                 nome: '',

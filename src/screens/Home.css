@@ -145,3 +145,49 @@
     padding: 20px;
     box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
 }
+
+.button-csv {
+    background-color:  #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+.button-csv:hover {
+    background-color: #45a049; 
+    transform: scale(1.05); 
+}
+
+.button-csv:focus {
+    outline: none; 
+    box-shadow: 0 0 5px 2px rgba(0, 255, 0, 0.5); 
+}
+
+.limpar-historico-btn {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+.limpar-historico-btn:hover {
+    background-color: #d9363e;
+}
+
+.botoes-container {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 10 20px;
+  }
+  

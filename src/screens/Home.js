@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Home.css';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Bar, Pie, Line, Radar, PolarArea } from 'react-chartjs-2';
 import IconeHome from '../icones/icone-home.svg';
 import IconeEstoque from '../icones/iconeEstoque.jpeg';
@@ -42,6 +42,7 @@ export const Home = () => {
     const [nomeUsuario, setNomeUsuario] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [historicoVendas, setHistoricoVendas] = useState([]);
+    const [historicoEntradas, setHistoricoEntradas] = useState([]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -49,13 +50,65 @@ export const Home = () => {
                 setUser(currentUser);
                 fetchProdutos(currentUser.uid);
                 fetchNomeUsuario(currentUser.uid);
-                fetchHistoricoVendas(); // Carregar histórico de vendas ao logar
+                fetchHistoricoVendas(currentUser.uid);
+                fetchHistoricoEntradas(currentUser.uid); // ✅ Adicione isto!
             }
         });
-
         return () => unsubscribe();
     }, []);
 
+    
+    const exportarCSV = (dados, nomeArquivo = 'dados.csv') => {
+        const csvRows = [];
+
+        // Adiciona o cabeçalho
+        const headers = Object.keys(dados[0]);
+        csvRows.push(headers.join(','));
+
+        // Adiciona os dados
+        for (const row of dados) {
+            const values = headers.map(header => {
+                const escaped = ('' + row[header]).replace(/"/g, '\\"');
+                return `${escaped}`;
+            });
+            csvRows.push(values.join(','));
+        }
+
+        // Cria o arquivo CSV e ativa o download
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeArquivo;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+    };
+
+    const entradasFormatadas = historicoEntradas.map((entrada) => ({
+        nome: entrada.nome,
+        quantidade: entrada.quantidade,
+        data: entrada.data ? entrada.data.toDate().toLocaleString() : 'Sem data', // Formata a data
+    }));
+
+    const limparHistoricoEntradas = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'historicoEntradas'));
+
+            const deletePromises = querySnapshot.docs.map((documento) =>
+                deleteDoc(doc(db, 'historicoEntradas', documento.id))
+            );
+
+            await Promise.all(deletePromises);
+
+            alert('Histórico de entradas limpo com sucesso!');
+        } catch (error) {
+            console.error('Erro ao limpar histórico: ', error);
+            alert('Erro ao limpar o histórico.');
+        }
+    };
 
     const fetchProdutos = async (userId) => {
         try {
@@ -85,6 +138,19 @@ export const Home = () => {
             console.error('Erro ao buscar nome de usuário:', error);
         }
     };
+
+    const fetchHistoricoEntradas = async (userId) => {
+        try {
+            const entradasSnapshot = await getDocs(collection(db, 'historicoEntradas'));
+            const entradasArray = entradasSnapshot.docs
+                .map(doc => doc.data())
+                .filter(entrada => entrada.userId === userId);
+            setHistoricoEntradas(entradasArray);
+        } catch (error) {
+            console.error('Erro ao buscar histórico de entradas:', error);
+        }
+    };
+
     const fetchHistoricoVendas = async (userId) => {
         try {
             const vendasSnapshot = await getDocs(collection(db, 'historicoVendas'));
@@ -115,15 +181,17 @@ export const Home = () => {
     const registrarVenda = async (produto, quantidade) => {
         try {
             // Salva a venda no Firestore
-            await addDoc(collection(db, 'historico_vendas'), {
-                nomeProduto: produto.nome,
+            await addDoc(collection(db, 'historicoVendas'), {
+                nome: produto.nome,
                 quantidadeVendida: quantidade,
                 usuario: nomeUsuario,
+                userId: user.uid,
                 data: new Date(),
             });
+            
 
             // Atualiza o estado com o histórico de vendas
-            fetchHistoricoVendas();
+            fetchHistoricoVendas(user.uid);
         } catch (error) {
             console.error('Erro ao registrar a venda:', error);
         }
@@ -388,6 +456,28 @@ export const Home = () => {
                             </ul>
                         ) : (
                             <p>Nenhuma venda registrada.</p>
+                        )}
+                    </section>
+
+                    <section className="historico-entradas stock-summary">
+                        <h2>Histórico de Entradas</h2>
+
+                        <div className="botoes-container">
+                        <button className='button-csv' onClick={() => exportarCSV(entradasFormatadas, 'entradas.csv')}>Baixar CSV</button>
+                        <button className='limpar-historico-btn' onClick={limparHistoricoEntradas}>Limpar Histórico</button>
+                        </div>
+                        
+                        {historicoEntradas.length > 0 ? (
+                            <ul>
+                                {historicoEntradas.map((entrada, index) => (
+                                    <li key={index}>
+                                        Produto: {entrada.nome} - Quantidade: {entrada.quantidade} -
+                                        Data: {entrada.data ? new Date(entrada.data.toDate()).toLocaleDateString() : 'Data indisponível'}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>Nenhuma entrada registrada.</p>
                         )}
                     </section>
 
