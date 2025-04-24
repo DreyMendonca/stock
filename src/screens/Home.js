@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
@@ -7,6 +8,11 @@ import IconeHome from '../icones/icone-home.svg';
 import IconeEstoque from '../icones/iconeEstoque.jpeg';
 import IconeAdd from '../icones/iconeAdd.jpeg';
 import Logo from '../images/logoSemFundo.png';
+import LogoSide from '../images/logoSide.png';
+import EstoqueSide from '../images/estoque.png';
+import AddSide from '../images/botao-adicionar.png';
+import FuncionarioSide from '../images/equipe.png';
+import Logout from '../images/logout.png';
 
 // Importando e registrando componentes necessários do Chart.js
 import {
@@ -35,8 +41,9 @@ ChartJS.register(
     RadialLinearScale // Registra para gráficos de radar
 );
 
-
 export const Home = () => {
+    const navigate = useNavigate();
+
     const [produtos, setProdutos] = useState([]);
     const [user, setUser] = useState(null);
     const [nomeUsuario, setNomeUsuario] = useState('');
@@ -57,7 +64,6 @@ export const Home = () => {
         return () => unsubscribe();
     }, []);
 
-    
     const exportarCSV = (dados, nomeArquivo = 'dados.csv') => {
         const csvRows = [];
 
@@ -163,7 +169,6 @@ export const Home = () => {
         }
     };
 
-
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (currentUser) {
@@ -177,7 +182,6 @@ export const Home = () => {
         return () => unsubscribe();
     }, []);
 
-
     const registrarVenda = async (produto, quantidade) => {
         try {
             // Salva a venda no Firestore
@@ -188,7 +192,6 @@ export const Home = () => {
                 userId: user.uid,
                 data: new Date(),
             });
-            
 
             // Atualiza o estado com o histórico de vendas
             fetchHistoricoVendas(user.uid);
@@ -289,6 +292,7 @@ export const Home = () => {
             ],
         };
     };
+
     const processarVendasPorDia = () => {
         const vendasPorDia = {};
 
@@ -314,16 +318,16 @@ export const Home = () => {
         };
     };
 
-
     const handleLogout = () => {
         auth.signOut()
-            .then(() => {
-                console.log('Usuário deslogado com sucesso');
-                setUser(null);
-            })
-            .catch((error) => {
-                console.error('Erro ao deslogar:', error);
-            });
+        .then(() => {
+            console.log('Usuário deslogado com sucesso');
+            setUser(null); // Se você precisar limpar o estado local do usuário
+            navigate('/login'); // Redireciona para a página /login
+        })
+        .catch((error) => {
+            console.error('Erro ao deslogar:', error);
+        });
     };
 
     const calcularTotalVendas = () => {
@@ -374,9 +378,6 @@ export const Home = () => {
         };
     };
 
-
-
-
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (currentUser) {
@@ -386,7 +387,6 @@ export const Home = () => {
 
         return () => unsubscribe();
     }, []);
-
 
     const calcularLucroTotal = () => {
         return historicoVendas.reduce((total, venda) => {
@@ -408,28 +408,51 @@ export const Home = () => {
         ],
     };
 
-
     return (
         <div className="dashboard-container">
             <aside className="sidebar">
                 {/* Sidebar conteúdo */}
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>                <img src={Logo} style={{ width: '140%' }} /></a>
-                <a href='/adicionarproduto' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
-                <a href='/estoque' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+                <a href='/home'>
+                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
+                    <span>Estocaí</span>
+                </a>
+                
+                <a href='/estoque'>                
+                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Estoque</span>
+                </a>
+
+                <a href='/adicionarproduto'>               
+                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Adicionar</span>
+                </a>
+
+                <a href='/cadastro-usuario'>               
+                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Funcionário</span>
+                </a>
+
+                <a href='#' onClick={handleLogout}>               
+                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Sair</span>
+                </a>
             </aside>
+
             <main className="dashboard-main">
-                <button onClick={handleLogout} className="logout-button">Sair</button>
                 <header className="dashboard-header">
                     <h1>Dashboard</h1>
+
                     <div className="total-vendas">
                         <h3>Total de Vendas</h3>
                         <p>{calcularTotalVendas()} itens vendidos</p>
                     </div>
+
                     <div className="user-profile">
                         <span>{nomeUsuario || 'Usuário'}</span>
                         <i className="fas fa-user-circle"></i>
                     </div>
                 </header>
+
                 <section className="dashboard-details">
                     <div className="stock-summary" style={{ height: '300px' }} onClick={handleChartClick}>
                         <h3>Resumo De Estoque</h3>
@@ -463,10 +486,10 @@ export const Home = () => {
                         <h2>Histórico de Entradas</h2>
 
                         <div className="botoes-container">
-                        <button className='button-csv' onClick={() => exportarCSV(entradasFormatadas, 'entradas.csv')}>Baixar CSV</button>
-                        <button className='limpar-historico-btn' onClick={limparHistoricoEntradas}>Limpar Histórico</button>
+                            <button className='button-csv' onClick={() => exportarCSV(entradasFormatadas, 'entradas.csv')}>Baixar CSV</button>
+                            <button className='limpar-historico-btn' onClick={limparHistoricoEntradas}>Limpar Histórico</button>
                         </div>
-                        
+
                         {historicoEntradas.length > 0 ? (
                             <ul>
                                 {historicoEntradas.map((entrada, index) => (
@@ -489,6 +512,7 @@ export const Home = () => {
                             <p>Nenhuma venda registrada para exibir.</p>
                         )}
                     </section>
+
                     {/* 
                     <section className="grafico-dia-venda stock-summary" style={{ height: '300px', marginTop: '-200px' }}>
                     <h2>Quantidade de Vendas Realizadas por Dia</h2>
@@ -511,7 +535,6 @@ export const Home = () => {
                             <PolarArea data={data} />
                         </div>
                     </section>
-
                 </section>
             </main>
         </div>
