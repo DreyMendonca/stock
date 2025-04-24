@@ -5,6 +5,8 @@ import AdicionarProduto from './screens/AdicionarProduto';
 import Cadastro from './screens/Cadastro';
 import Login from './screens/Login';
 import Estoque from './screens/Estoque';
+import CadastroUsuarioComum from './screens/CadastroUsuarioComum'; // Novo componente
+import AdminRoute from './components/AdminRoute'; // Componente de rota protegida
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -20,6 +22,13 @@ function App() {
           <Route path="/Cadastro" element={<Cadastro />} />
           <Route path="/Login" element={<Login />} />
           <Route path="/Estoque" element={<Estoque />} />
+          
+          {/* Nova rota protegida para cadastro de usuários comuns */}
+          <Route path="/cadastro-usuario" element={
+            <AdminRoute>
+              <CadastroUsuarioComum />
+            </AdminRoute>
+          } />
         </Routes>
       </Router>
       <ToastContainer

@@ -1,12 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import { db, auth } from '../firebase';
-import { collection, getDocs, query, where, addDoc } from 'firebase/firestore';
+import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
 import { Bar, Pie, Line, Radar, PolarArea } from 'react-chartjs-2';
 import IconeHome from '../icones/icone-home.svg';
 import IconeEstoque from '../icones/iconeEstoque.jpeg';
 import IconeAdd from '../icones/iconeAdd.jpeg';
 import Logo from '../images/logoSemFundo.png';
+import LogoSide from '../images/logoSide.png';
+import EstoqueSide from '../images/estoque.png';
+import AddSide from '../images/botao-adicionar.png';
+import FuncionarioSide from '../images/equipe.png';
+import Logout from '../images/logout.png';
 
 // Importando e registrando componentes necessários do Chart.js
 import {
@@ -35,13 +41,15 @@ ChartJS.register(
     RadialLinearScale // Registra para gráficos de radar
 );
 
-
 export const Home = () => {
+    const navigate = useNavigate();
+
     const [produtos, setProdutos] = useState([]);
     const [user, setUser] = useState(null);
     const [nomeUsuario, setNomeUsuario] = useState('');
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [historicoVendas, setHistoricoVendas] = useState([]);
+    const [historicoEntradas, setHistoricoEntradas] = useState([]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -49,13 +57,64 @@ export const Home = () => {
                 setUser(currentUser);
                 fetchProdutos(currentUser.uid);
                 fetchNomeUsuario(currentUser.uid);
-                fetchHistoricoVendas(); // Carregar histórico de vendas ao logar
+                fetchHistoricoVendas(currentUser.uid);
+                fetchHistoricoEntradas(currentUser.uid); // ✅ Adicione isto!
             }
         });
-
         return () => unsubscribe();
     }, []);
 
+    const exportarCSV = (dados, nomeArquivo = 'dados.csv') => {
+        const csvRows = [];
+
+        // Adiciona o cabeçalho
+        const headers = Object.keys(dados[0]);
+        csvRows.push(headers.join(','));
+
+        // Adiciona os dados
+        for (const row of dados) {
+            const values = headers.map(header => {
+                const escaped = ('' + row[header]).replace(/"/g, '\\"');
+                return `${escaped}`;
+            });
+            csvRows.push(values.join(','));
+        }
+
+        // Cria o arquivo CSV e ativa o download
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeArquivo;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+    };
+
+    const entradasFormatadas = historicoEntradas.map((entrada) => ({
+        nome: entrada.nome,
+        quantidade: entrada.quantidade,
+        data: entrada.data ? entrada.data.toDate().toLocaleString() : 'Sem data', // Formata a data
+    }));
+
+    const limparHistoricoEntradas = async () => {
+        try {
+            const querySnapshot = await getDocs(collection(db, 'historicoEntradas'));
+
+            const deletePromises = querySnapshot.docs.map((documento) =>
+                deleteDoc(doc(db, 'historicoEntradas', documento.id))
+            );
+
+            await Promise.all(deletePromises);
+
+            alert('Histórico de entradas limpo com sucesso!');
+        } catch (error) {
+            console.error('Erro ao limpar histórico: ', error);
+            alert('Erro ao limpar o histórico.');
+        }
+    };
 
     const fetchProdutos = async (userId) => {
         try {
@@ -85,6 +144,19 @@ export const Home = () => {
             console.error('Erro ao buscar nome de usuário:', error);
         }
     };
+
+    const fetchHistoricoEntradas = async (userId) => {
+        try {
+            const entradasSnapshot = await getDocs(collection(db, 'historicoEntradas'));
+            const entradasArray = entradasSnapshot.docs
+                .map(doc => doc.data())
+                .filter(entrada => entrada.userId === userId);
+            setHistoricoEntradas(entradasArray);
+        } catch (error) {
+            console.error('Erro ao buscar histórico de entradas:', error);
+        }
+    };
+
     const fetchHistoricoVendas = async (userId) => {
         try {
             const vendasSnapshot = await getDocs(collection(db, 'historicoVendas'));
@@ -96,7 +168,6 @@ export const Home = () => {
             console.error('Erro ao buscar histórico de vendas:', error);
         }
     };
-
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -111,19 +182,19 @@ export const Home = () => {
         return () => unsubscribe();
     }, []);
 
-
     const registrarVenda = async (produto, quantidade) => {
         try {
             // Salva a venda no Firestore
-            await addDoc(collection(db, 'historico_vendas'), {
-                nomeProduto: produto.nome,
+            await addDoc(collection(db, 'historicoVendas'), {
+                nome: produto.nome,
                 quantidadeVendida: quantidade,
                 usuario: nomeUsuario,
+                userId: user.uid,
                 data: new Date(),
             });
 
             // Atualiza o estado com o histórico de vendas
-            fetchHistoricoVendas();
+            fetchHistoricoVendas(user.uid);
         } catch (error) {
             console.error('Erro ao registrar a venda:', error);
         }
@@ -221,6 +292,7 @@ export const Home = () => {
             ],
         };
     };
+
     const processarVendasPorDia = () => {
         const vendasPorDia = {};
 
@@ -246,16 +318,16 @@ export const Home = () => {
         };
     };
 
-
     const handleLogout = () => {
         auth.signOut()
-            .then(() => {
-                console.log('Usuário deslogado com sucesso');
-                setUser(null);
-            })
-            .catch((error) => {
-                console.error('Erro ao deslogar:', error);
-            });
+        .then(() => {
+            console.log('Usuário deslogado com sucesso');
+            setUser(null); // Se você precisar limpar o estado local do usuário
+            navigate('/login'); // Redireciona para a página /login
+        })
+        .catch((error) => {
+            console.error('Erro ao deslogar:', error);
+        });
     };
 
     const calcularTotalVendas = () => {
@@ -306,9 +378,6 @@ export const Home = () => {
         };
     };
 
-
-
-
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (currentUser) {
@@ -318,7 +387,6 @@ export const Home = () => {
 
         return () => unsubscribe();
     }, []);
-
 
     const calcularLucroTotal = () => {
         return historicoVendas.reduce((total, venda) => {
@@ -340,28 +408,51 @@ export const Home = () => {
         ],
     };
 
-
     return (
         <div className="dashboard-container">
             <aside className="sidebar">
                 {/* Sidebar conteúdo */}
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>                <img src={Logo} style={{ width: '140%' }} /></a>
-                <a href='/adicionarproduto' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
-                <a href='/estoque' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+                <a href='/home'>
+                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
+                    <span>Estocaí</span>
+                </a>
+                
+                <a href='/estoque'>                
+                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Estoque</span>
+                </a>
+
+                <a href='/adicionarproduto'>               
+                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Adicionar</span>
+                </a>
+
+                <a href='/cadastro-usuario'>               
+                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Funcionário</span>
+                </a>
+
+                <a href='#' onClick={handleLogout}>               
+                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Sair</span>
+                </a>
             </aside>
+
             <main className="dashboard-main">
-                <button onClick={handleLogout} className="logout-button">Sair</button>
                 <header className="dashboard-header">
                     <h1>Dashboard</h1>
+
                     <div className="total-vendas">
                         <h3>Total de Vendas</h3>
                         <p>{calcularTotalVendas()} itens vendidos</p>
                     </div>
+
                     <div className="user-profile">
                         <span>{nomeUsuario || 'Usuário'}</span>
                         <i className="fas fa-user-circle"></i>
                     </div>
                 </header>
+
                 <section className="dashboard-details">
                     <div className="stock-summary" style={{ height: '300px' }} onClick={handleChartClick}>
                         <h3>Resumo De Estoque</h3>
@@ -391,6 +482,28 @@ export const Home = () => {
                         )}
                     </section>
 
+                    <section className="historico-entradas stock-summary">
+                        <h2>Histórico de Entradas</h2>
+
+                        <div className="botoes-container">
+                            <button className='button-csv' onClick={() => exportarCSV(entradasFormatadas, 'entradas.csv')}>Baixar CSV</button>
+                            <button className='limpar-historico-btn' onClick={limparHistoricoEntradas}>Limpar Histórico</button>
+                        </div>
+
+                        {historicoEntradas.length > 0 ? (
+                            <ul>
+                                {historicoEntradas.map((entrada, index) => (
+                                    <li key={index}>
+                                        Produto: {entrada.nome} - Quantidade: {entrada.quantidade} -
+                                        Data: {entrada.data ? new Date(entrada.data.toDate()).toLocaleDateString() : 'Data indisponível'}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>Nenhuma entrada registrada.</p>
+                        )}
+                    </section>
+
                     <section className="grafico-pizza stock-summary">
                         <h2>Produtos Mais Vendidos</h2>
                         {historicoVendas.length > 0 ? (
@@ -399,6 +512,7 @@ export const Home = () => {
                             <p>Nenhuma venda registrada para exibir.</p>
                         )}
                     </section>
+
                     {/* 
                     <section className="grafico-dia-venda stock-summary" style={{ height: '300px', marginTop: '-200px' }}>
                     <h2>Quantidade de Vendas Realizadas por Dia</h2>
@@ -421,7 +535,6 @@ export const Home = () => {
                             <PolarArea data={data} />
                         </div>
                     </section>
-
                 </section>
             </main>
         </div>

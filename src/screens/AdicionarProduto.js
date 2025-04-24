@@ -7,6 +7,11 @@ import './AdicionarProduto.css';
 import IconeEstoque from '../icones/iconeEstoque.jpeg';
 import IconeAdd from '../icones/iconeAdd.jpeg';
 import Logo from '../images/logoSemFundo.png';
+import LogoSide from '../images/logoSide.png';
+import EstoqueSide from '../images/estoque.png';
+import AddSide from '../images/botao-adicionar.png';
+import FuncionarioSide from '../images/equipe.png';
+import Logout from '../images/logout.png';
 
 export const AdicionarProduto = () => {
     const [produto, setProduto] = useState({
@@ -49,6 +54,18 @@ export const AdicionarProduto = () => {
         });
         return () => unsubscribe();
     }, [navigate]);
+
+    const handleLogout = () => {
+        auth.signOut()
+        .then(() => {
+            console.log('Usuário deslogado com sucesso');
+            setUser(null); // Se você precisar limpar o estado local do usuário
+            navigate('/login'); // Redireciona para a página /login
+        })
+        .catch((error) => {
+            console.error('Erro ao deslogar:', error);
+        });
+    };
 
     // Busca categorias salvas no Firebase ao carregar o componente
     useEffect(() => {
@@ -96,6 +113,14 @@ export const AdicionarProduto = () => {
                 userId: user.uid
             });
 
+            await addDoc(collection(db, 'historicoEntradas'), {
+                nome: produto.nome,
+                quantidade: parseInt(produto.quantidade),
+                userId: user.uid,
+                data: new Date()
+            });
+
+
             alert('Produto adicionado com sucesso!');
             setProduto({
                 nome: '',
@@ -138,110 +163,143 @@ export const AdicionarProduto = () => {
     };
 
     return (
-        <div className="product-form-container">
+        <div className="container-default">
             <aside className="sidebar">
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>                <img src={Logo} style={{ width: '140%' }} /></a>
-                <a href='/adicionarproduto' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
-                <a href='/estoque' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+                {/* Sidebar conteúdo */}
+                <a href='/home'>
+                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
+                    <span>Estocaí</span>
+                </a>
+                
+                <a href='/estoque'>                
+                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Estoque</span>
+                </a>
+
+                <a href='/adicionarproduto'>               
+                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Adicionar</span>
+                </a>
+
+                <a href='/cadastro-usuario'>               
+                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Funcionário</span>
+                </a>
+
+                <a href='#' onClick={handleLogout}>               
+                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Sair</span>
+                </a>
             </aside>
-            <div className="upload-section">
-                <input type="file" onChange={handleImageChange} />
-            </div>
 
-            <div className="form-section">
-                <h2>Adicionar Produto</h2>
-                <div className="form-group">
-                    <label>Nome do Produto</label>
-                    <input
-                        type="text"
-                        name="nome"
-                        value={produto.nome}
-                        onChange={handleChange}
-                        placeholder="Nome do Produto"
-                    />
+            <div className="product-form-container">
+                <div className="form-section">
+                    <div className="form-header">
+                        <h2>Adicionar Produto</h2>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Nome do Produto</label>
+                                <input
+                                    type="text"
+                                    name="nome"
+                                    value={produto.nome}
+                                    onChange={handleChange}
+                                    placeholder="Nome do Produto"
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Preço: R$</label>
+                                <input
+                                    type="text"
+                                    name="preco"
+                                    value={produto.preco}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>Desconto: %</label>
+                                <input
+                                    type="text"
+                                    name="desconto"
+                                    value={produto.desconto}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Quantidade</label>
+                                <input
+                                    type="number"
+                                    name="quantidade"
+                                    value={produto.quantidade}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label>SKU (Opcional)</label>
+                                <input
+                                    type="text"
+                                    name="sku"
+                                    value={produto.sku}
+                                    onChange={handleChange}
+                                />
+                            </div>
+                            <div className="form-group">
+                                <label>Categoria</label>
+                                <select
+                                    className='select-cat'
+                                    name="categoria"
+                                    value={produto.categoria}
+                                    onChange={handleChange}
+                                >
+                                    <option value="">Selecione uma categoria</option>
+                                    {categorias.map((cat, index) => (
+                                        <option key={index} value={cat}>{cat}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className='btn-group'>
+                            <div className="upload-section">
+                                <label htmlFor="file-upload" className="upload-label">Escolher Arquivo</label>
+                                <input id="file-upload" type="file" onChange={handleImageChange} />
+                            </div>
+                            <div className='btn-header'>
+                                <button
+                                    className="btn criar-categoria-btn"
+                                    onClick={() => setMostrarCriarCategoria(true)}
+                                >
+                                    Criar nova categoria
+                                </button>
+
+                                {mostrarCriarCategoria && (
+                                    <div className="form-group nova-categoria">
+                                        <label>Nova Categoria</label>
+                                        <div className="nova-cat-row">
+                                            <input
+                                                type="text"
+                                                value={novaCategoria}
+                                                onChange={(e) => setNovaCategoria(e.target.value)}
+                                                placeholder="Nome da nova categoria"
+                                            />
+                                            <button className="btn add-cat" onClick={handleAdicionarCategoria}>
+                                                Adicionar
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <button className="btn add-product-btn" onClick={handleAddProduto}>
+                                    Adicionar Produto
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Preço: R$</label>
-                        <input
-                            type="text"
-                            name="preco"
-                            value={produto.preco}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>Desconto: %</label>
-                        <input
-                            type="text"
-                            name="desconto"
-                            value={produto.desconto}
-                            onChange={handleChange}
-                        />
-                    </div>
-                </div>
-
-                <div className="form-row">
-                    <div className="form-group">
-                        <label>Quantidade</label>
-                        <input
-                            type="number"
-                            name="quantidade"
-                            value={produto.quantidade}
-                            onChange={handleChange}
-                        />
-                    </div>
-                    <div className="form-group">
-                        <label>SKU (Opcional)</label>
-                        <input
-                            type="text"
-                            name="sku"
-                            value={produto.sku}
-                            onChange={handleChange}
-                        />
-                    </div>
-                </div>
-
-                <div className="form-group">
-                    <label>Categoria</label>
-                    <select
-                        name="categoria"
-                        value={produto.categoria}
-                        onChange={handleChange}
-                    >
-                        <option value="">Selecione uma categoria</option>
-                        {categorias.map((cat, index) => (
-                            <option key={index} value={cat}>{cat}</option>
-                        ))}
-                    </select>
-                </div>
-
-                <button
-                    className="btn criar-categoria-btn"
-                    onClick={() => setMostrarCriarCategoria(true)}
-                >
-                    Criar nova categoria
-                </button>
-
-                {mostrarCriarCategoria && (
-                    <div className="form-group">
-                        <label>Nova Categoria</label>
-                        <input
-                            type="text"
-                            value={novaCategoria}
-                            onChange={(e) => setNovaCategoria(e.target.value)}
-                            placeholder="Nome da nova categoria"
-                        />
-                        <button className="btn" onClick={handleAdicionarCategoria}>
-                            Adicionar Categoria
-                        </button>
-                    </div>
-                )}
-
-                <button className="btn add-product-btn" onClick={handleAddProduto}>
-                    Adicionar Produto
-                </button>
             </div>
         </div>
     );
