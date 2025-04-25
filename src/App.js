@@ -1,10 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import Home from './screens/Home';
-import AdicionarProduto from './screens/AdicionarProduto';
-import Cadastro from './screens/Cadastro';
-import Login from './screens/Login';
-import Estoque from './screens/Estoque';
+import AdicionarProduto from './screens/AdicionarProduto/UseAdicionarProdutoView';
+import Cadastro from './screens/Cadastro/CadastroView';
+import Login from './screens/Login/LoginView';
+import Estoque from './screens/Estoque/EstoqueView';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
