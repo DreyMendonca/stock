@@ -1,8 +1,8 @@
 // pages/Cadastro.js
 import React, { useState } from 'react';
-import CadastroForm from '.CadastroView';
-import '.Cadastro.css';
-import { db, auth } from '../firebase';
+import CadastroView from './CadastroView';
+import './Cadastro.css'; 
+import { db, auth } from '../../firebase';
 import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { ToastContainer, toast } from "react-toastify";
@@ -106,7 +106,7 @@ const Cadastro = () => {
 
   return (
     <>
-      <CadastroForm
+      <CadastroView
         formData={formData}
         handleChange={handleChange}
         handleSubmit={handleSubmit}
