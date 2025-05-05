@@ -18,6 +18,7 @@ export const AdicionarProduto = () => {
     const [produto, setProduto] = useState({
         nome: '',
         preco: '',
+        precoCusto: '',
         desconto: '',
         quantidade: '',
         sku: '',
@@ -64,14 +65,14 @@ export const AdicionarProduto = () => {
 
     const handleLogout = () => {
         auth.signOut()
-        .then(() => {
-            console.log('Usuário deslogado com sucesso');
-            setUser(null);
-            navigate('/login');
-        })
-        .catch((error) => {
-            console.error('Erro ao deslogar:', error);
-        });
+            .then(() => {
+                console.log('Usuário deslogado com sucesso');
+                setUser(null);
+                navigate('/login');
+            })
+            .catch((error) => {
+                console.error('Erro ao deslogar:', error);
+            });
     };
 
     useEffect(() => {
@@ -97,54 +98,57 @@ export const AdicionarProduto = () => {
             setImagem(file);
             setPreview(URL.createObjectURL(file)); // Gera a prévia 😍
         }
-    };    
+    };
 
     const handleAddProduto = async () => {
         if (!user) {
             alert('Você precisa estar logado para adicionar um produto.');
+            if (!produto.precoCusto || isNaN(parseFloat(produto.precoCusto.replace(',', '.'))) || parseFloat(produto.precoCusto.replace(',', '.')) <= 0) {
+                erros.push('Preço de custo inválido, verifique se preencheu corretamente.');
+            }
             return;
         }
 
         // Validação das treta antes de subir pro Firebase, mermão do sertão
-const erros = [];
+        const erros = [];
 
-if (!produto.nome || produto.nome.trim() === '') {
-    erros.push('O campo "nome" tá mais vazio que geladeira de estudante.');
-}
-if (!produto.preco || isNaN(parseFloat(produto.preco)) || parseFloat(produto.preco) <= 0) {
-    erros.push('Preço inválido, uai! Isso num é número ou tá zero/negativo, cê tá doido?');
-}
-if (!produto.quantidade || isNaN(parseInt(produto.quantidade)) || parseInt(produto.quantidade) <= 0) {
-    erros.push('Quantia tá bugada! Bota um número maior que zero, sô.');
-}
-if (!produto.categoria || produto.categoria.trim() === '') {
-    erros.push('Categoria sumiu no mapa. Preenche isso aí, visse?');
-}
-if (!produto.validade) {
-    erros.push('Tá faltando a data de validade, cabra!');
-} else {
-    const hoje = new Date();
-    const validade = new Date(produto.validade);
-    const umMesDepois = new Date();
-    umMesDepois.setMonth(hoje.getMonth() + 1);
+        if (!produto.nome || produto.nome.trim() === '') {
+            erros.push('O campo "nome" tá mais vazio que geladeira de estudante.');
+        }
+        if (!produto.preco || isNaN(parseFloat(produto.preco)) || parseFloat(produto.preco) <= 0) {
+            erros.push('Preço inválido, uai! Isso num é número ou tá zero/negativo, cê tá doido?');
+        }
+        if (!produto.quantidade || isNaN(parseInt(produto.quantidade)) || parseInt(produto.quantidade) <= 0) {
+            erros.push('Quantia tá bugada! Bota um número maior que zero, sô.');
+        }
+        if (!produto.categoria || produto.categoria.trim() === '') {
+            erros.push('Categoria sumiu no mapa. Preenche isso aí, visse?');
+        }
+        if (!produto.validade) {
+            erros.push('Tá faltando a data de validade, cabra!');
+        } else {
+            const hoje = new Date();
+            const validade = new Date(produto.validade);
+            const umMesDepois = new Date();
+            umMesDepois.setMonth(hoje.getMonth() + 1);
 
-    if (validade < umMesDepois) {
-        erros.push('A validade tem que ser pelo menos 1 mês pra frente, senão o trem vence rapidim.');
-    }
-}
-if (!produto.lote || produto.lote.trim() === '') {
-    erros.push('O campo "lote" tá que nem alma penada: invisível.');
-}
+            if (validade < umMesDepois) {
+                erros.push('A validade tem que ser pelo menos 1 mês pra frente, senão o trem vence rapidim.');
+            }
+        }
+        if (!produto.lote || produto.lote.trim() === '') {
+            erros.push('O campo "lote" tá que nem alma penada: invisível.');
+        }
 
-if (!imagem) {
-    erros.push('Cadê a foto do bicho, uai? Produto sem imagem é que nem pamonha sem milho.');
-}
+        if (!imagem) {
+            erros.push('Cadê a foto do bicho, uai? Produto sem imagem é que nem pamonha sem milho.');
+        }
 
-// Cancela o rolê se tiver erro
-if (erros.length > 0) {
-    alert(erros.join('\n'));
-    return;
-}
+        // Cancela o rolê se tiver erro
+        if (erros.length > 0) {
+            alert(erros.join('\n'));
+            return;
+        }
 
 
         try {
@@ -155,16 +159,10 @@ if (erros.length > 0) {
                 imagemUrl = await getDownloadURL(snapshot.ref);
             }
             await addDoc(collection(db, 'produtos'), {
-                nome: produto.nome,
-                preco: parseFloat(produto.preco),
-                desconto: parseFloat(produto.desconto),
-                quantidade: parseInt(produto.quantidade),
-                sku: produto.sku,
-                categoria: produto.categoria,
-                variantes: produto.variantes,
+                ...produto,
+                precoCusto: produto.precoCusto.replace(',', '.'),
                 imagem: imagemUrl,
-                userId: user.uid,
-                criadoEm: new Date()
+                userId: user.uid
             });
 
             await addDoc(collection(db, 'historicoEntradas'), {
@@ -196,20 +194,20 @@ if (erros.length > 0) {
     const getMinValidade = () => {
         const hoje = new Date();
         hoje.setMonth(hoje.getMonth() + 1);
-    
+
         // Corrigir overflow de dias
         if (hoje.getDate() !== new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).getDate()) {
             hoje.setDate(0);
         }
-    
+
         const ano = hoje.getFullYear();
         const mes = String(hoje.getMonth() + 1).padStart(2, '0');
         const dia = String(hoje.getDate()).padStart(2, '0');
         return `${ano}-${mes}-${dia}`;
     };
-    
-    
-    
+
+
+
 
     const handleAdicionarCategoria = async () => {
         const nomeCategoria = novaCategoria.trim();
@@ -237,27 +235,27 @@ if (erros.length > 0) {
             <aside className="sidebar">
                 {/* Sidebar conteúdo */}
                 <a href='/home'>
-                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
+                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }} />
                     <span>Estocaí</span>
                 </a>
-                
-                <a href='/estoque'>                
-                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
+
+                <a href='/estoque'>
+                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }} />
                     <span>Estoque</span>
                 </a>
 
-                <a href='/adicionarproduto'>               
-                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
+                <a href='/adicionarproduto'>
+                    <img src={AddSide} style={{ width: '45px', height: 'auto' }} />
                     <span>Adicionar</span>
                 </a>
 
-                <a href='/cadastro-usuario'>               
-                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
+                <a href='/cadastro-usuario'>
+                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }} />
                     <span>Funcionário</span>
                 </a>
 
-                <a href='#' onClick={handleLogout}>               
-                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
+                <a href='#' onClick={handleLogout}>
+                    <img src={Logout} style={{ width: '45px', height: 'auto' }} />
                     <span>Sair</span>
                 </a>
             </aside>
@@ -279,30 +277,61 @@ if (erros.length > 0) {
                                 />
                             </div>
                             <div className="form-group">
-                            <label>Preço: R$</label>
-<input
-    type="text"
-    name="preco"
-    value={produto.preco}
-    onChange={(e) => {
-        let valor = e.target.value;
+                                <label>Preço: R$</label>
+                                <input
+                                    type="text"
+                                    name="preco"
+                                    value={produto.preco}
+                                    onChange={(e) => {
+                                        let valor = e.target.value;
 
-        // Remove tudo que não for número
-        valor = valor.replace(/\D/g, '');
+                                        // Remove tudo que não for número
+                                        valor = valor.replace(/\D/g, '');
 
-        // Transforma em centavos e formata com vírgula
-        valor = (parseFloat(valor) / 100).toFixed(2);
+                                        // Transforma em centavos e formata com vírgula
+                                        valor = (parseFloat(valor) / 100).toFixed(2);
 
-        // Troca o ponto por vírgula (estilo BR)
-        valor = valor.replace('.', ',');
+                                        // Troca o ponto por vírgula (estilo BR)
+                                        valor = valor.replace('.', ',');
 
-        setProduto({ ...produto, preco: valor });
-    }}
-    required
-/>
+                                        setProduto({ ...produto, preco: valor });
+                                    }}
+                                    required
+                                />
 
                             </div>
+                        
+
+                        <div className="form-group">
+                            <label>Preço de Custo: R$</label>
+                            <input
+                                type="text"
+                                name="precoCusto"
+                                value={produto.precoCusto}
+                                onChange={(e) => {
+                                    let valor = e.target.value;
+                                    valor = valor.replace(/\D/g, '');
+                                    valor = (parseFloat(valor) / 100).toFixed(2);
+                                    valor = valor.replace('.', ',');
+                                    setProduto({ ...produto, precoCusto: valor });
+                                }}
+                                required
+                            />
                         </div>
+                            {produto.preco && produto.precoCusto && (
+                                <p style={{ marginTop: '5px', color: 'green' }}>
+                                    Lucro estimado: R$
+                                    {(() => {
+                                        const precoVenda = parseFloat(produto.preco.replace(',', '.'));
+                                        const precoCusto = parseFloat(produto.precoCusto.replace(',', '.'));
+                                        const lucro = precoVenda - precoCusto;
+                                        return lucro.toFixed(2).replace('.', ',');
+                                    })()}
+                                </p>
+                            )}
+                        </div>
+
+
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Desconto: %</label>
@@ -329,30 +358,30 @@ if (erros.length > 0) {
                             </div>
                         </div>
                         <div className="form-row">
-                        <div className="form-group">
-    <label>Validade</label>
-    <input
-  type="date"
-  name="validade"
-  value={produto.validade}
-  onChange={handleChange}
-  min={getMinValidade()} // <-- ainda formato ISO
-  required
-/>
+                            <div className="form-group">
+                                <label>Validade</label>
+                                <input
+                                    type="date"
+                                    name="validade"
+                                    value={produto.validade}
+                                    onChange={handleChange}
+                                    min={getMinValidade()} // <-- ainda formato ISO
+                                    required
+                                />
 
-</div>
+                            </div>
 
-    <div className="form-group">
-        <label>Lote</label>
-        <input
-            type="text"
-            name="lote"
-            value={produto.lote}
-            onChange={handleChange}
-            placeholder="Código do lote"
-        />
-    </div>
-</div>
+                            <div className="form-group">
+                                <label>Lote</label>
+                                <input
+                                    type="text"
+                                    name="lote"
+                                    value={produto.lote}
+                                    onChange={handleChange}
+                                    placeholder="Código do lote"
+                                />
+                            </div>
+                        </div>
 
                         <div className="form-row">
                             <div className="form-group">
@@ -380,55 +409,55 @@ if (erros.length > 0) {
                             </div>
                         </div>
                         <div className='btn-group'>
-                        <div className="upload-section" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-    <label htmlFor="file-upload" className="upload-label">Escolher Arquivo</label>
-    <input id="file-upload" type="file" onChange={handleImageChange} />
-    
-    {preview && (
-        <img
-            src={preview}
-            alt="Prévia da imagem"
-            style={{
-                width: '80px',
-                height: '80px',
-                objectFit: 'cover',
-                borderRadius: '8px',
-                border: '1px solid #ccc',
-                boxShadow: '0 0 5px rgba(0,0,0,0.2)',
-                cursor: 'pointer'
-            }}
-            onClick={handleImageClick}
-        />
-    )}
-    {isZoomed && (
-                <div 
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
-                        zIndex: 1000,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        cursor: 'zoom-out',
-                    }}
-                    onClick={handleImageClick}  // Fecha o zoom ao clicar na área
-                >
-                    <img
-                        src={preview}
-                        alt={produto.nome}
-                        style={{
-                            maxWidth: '90%',
-                            maxHeight: '90%',
-                            objectFit: 'contain',
-                        }}
-                    />
-                </div>
-            )}
-</div>
+                            <div className="upload-section" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <label htmlFor="file-upload" className="upload-label">Escolher Arquivo</label>
+                                <input id="file-upload" type="file" onChange={handleImageChange} />
+
+                                {preview && (
+                                    <img
+                                        src={preview}
+                                        alt="Prévia da imagem"
+                                        style={{
+                                            width: '80px',
+                                            height: '80px',
+                                            objectFit: 'cover',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ccc',
+                                            boxShadow: '0 0 5px rgba(0,0,0,0.2)',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={handleImageClick}
+                                    />
+                                )}
+                                {isZoomed && (
+                                    <div
+                                        style={{
+                                            position: 'fixed',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
+                                            zIndex: 1000,
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            cursor: 'zoom-out',
+                                        }}
+                                        onClick={handleImageClick}  // Fecha o zoom ao clicar na área
+                                    >
+                                        <img
+                                            src={preview}
+                                            alt={produto.nome}
+                                            style={{
+                                                maxWidth: '90%',
+                                                maxHeight: '90%',
+                                                objectFit: 'contain',
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
 
                             <div className='btn-header'>
                                 <button

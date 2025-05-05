@@ -35,6 +35,8 @@ export const Estoque = () => {
     const [tipoFiltro, setTipoFiltro] = useState('maisProxima'); // 'maisProxima' é o valor inicial
     const [isZoomed, setIsZoomed] = useState(false);
     const navigate = useNavigate();
+    const [totalLucro, setTotalLucro] = useState(0);
+
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -48,14 +50,14 @@ export const Estoque = () => {
 
     const handleLogout = () => {
         auth.signOut()
-        .then(() => {
-            console.log('Usuário deslogado com sucesso');
-            setUser(null); // Se você precisar limpar o estado local do usuário
-            navigate('/login'); // Redireciona para a página /login
-        })
-        .catch((error) => {
-            console.error('Erro ao deslogar:', error);
-        });
+            .then(() => {
+                console.log('Usuário deslogado com sucesso');
+                setUser(null); // Se você precisar limpar o estado local do usuário
+                navigate('/login'); // Redireciona para a página /login
+            })
+            .catch((error) => {
+                console.error('Erro ao deslogar:', error);
+            });
     };
 
     const handleImageClick = () => {
@@ -118,31 +120,38 @@ export const Estoque = () => {
     const handleCalcular = () => {
         let total = 0;
         let totalDesconto = 0; // Variáveis com let, pois precisam ser modificadas
+        let totalLucro = 0;  // Variável para acumular o lucro total
         produtos.forEach((produto) => {
             const quantidade = parseInt(quantidades[produto.id] || 0, 10);
             if (quantidade > 0) {
                 const preco = parseFloat(produto.preco) || 0;
+                const precoCusto = parseFloat(produto.precoCusto) || 0; // A variável de preço de custo
                 const desconto = parseFloat(produto.desconto) || 0;
-    
+
                 // Calcular o valor sem desconto
                 const totalSemDesconto = quantidade * preco;
-    
+
                 // Calcular o valor do desconto
                 const valorDesconto = (totalSemDesconto * desconto) / 100;
-    
+
                 // Subtrair o valor do desconto do total sem desconto
                 total += totalSemDesconto - valorDesconto;
-    
+
                 // Acumular o valor do desconto
                 totalDesconto += valorDesconto;
+
+                // Calcular o lucro (preço de venda - preço de custo) * quantidade
+                totalLucro += (preco - precoCusto) * quantidade; // Lucro por produto
             }
         });
-    
+
         setTotalPrice(total);
         setTotalDesconto(totalDesconto); // Atualiza o valor do desconto
+        setTotalLucro(totalLucro); // Atualiza o lucro total
     };
-    
-    
+
+
+
 
     const handleFinalizarCompra = async () => {
         setIsLoading(true);
@@ -221,10 +230,11 @@ export const Estoque = () => {
             nome: produto.nome,
             categoria: produto.categoria,
             preco: produto.preco,
+            precoCusto: produto.precoCusto,
             quantidade: produto.quantidade,
             desconto: produto.desconto,
             validade: produto.validade || '',
-        lote: produto.lote || '',
+            lote: produto.lote || '',
             imagem: produto.imagem || ''
         });
     };
@@ -247,11 +257,11 @@ export const Estoque = () => {
             });
 
             // Atualiza o produto na lista local, sem precisar de refresh
-        setProdutos(prevProdutos => prevProdutos.map(produto =>
-            produto.id === editingProductId
-                ? { ...produto, ...editedProductData, imagem: novaImagemUrl } // Atualiza o produto editado
-                : produto
-        ));
+            setProdutos(prevProdutos => prevProdutos.map(produto =>
+                produto.id === editingProductId
+                    ? { ...produto, ...editedProductData, imagem: novaImagemUrl } // Atualiza o produto editado
+                    : produto
+            ));
 
             setEditingProductId(null);
             setEditedProductData({});
@@ -303,27 +313,27 @@ export const Estoque = () => {
             <aside className="sidebar">
                 {/* Sidebar conteúdo */}
                 <a href='/home'>
-                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
+                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }} />
                     <span>Estocaí</span>
                 </a>
-                
-                <a href='/estoque'>                
-                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
+
+                <a href='/estoque'>
+                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }} />
                     <span>Estoque</span>
                 </a>
 
-                <a href='/adicionarproduto'>               
-                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
+                <a href='/adicionarproduto'>
+                    <img src={AddSide} style={{ width: '45px', height: 'auto' }} />
                     <span>Adicionar</span>
                 </a>
 
-                <a href='/cadastro-usuario'>               
-                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
+                <a href='/cadastro-usuario'>
+                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }} />
                     <span>Funcionário</span>
                 </a>
 
-                <a href='#' onClick={handleLogout}>               
-                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
+                <a href='#' onClick={handleLogout}>
+                    <img src={Logout} style={{ width: '45px', height: 'auto' }} />
                     <span>Sair</span>
                 </a>
             </aside>
@@ -355,15 +365,15 @@ export const Estoque = () => {
                 </div><br></br>
 
                 <div className="filtro-validade">
-    <label>Filtrar por Validade:</label>
-    <select
-        value={tipoFiltro} // Utiliza o estado tipoFiltro
-        onChange={(e) => setTipoFiltro(e.target.value)} // Atualiza o estado com a opção selecionada
-    >
-        <option value="maisProxima">Validade mais próxima</option>
-        <option value="maisDistante">Validade mais distante</option>
-    </select>
-</div>
+                    <label>Filtrar por Validade:</label>
+                    <select
+                        value={tipoFiltro} // Utiliza o estado tipoFiltro
+                        onChange={(e) => setTipoFiltro(e.target.value)} // Atualiza o estado com a opção selecionada
+                    >
+                        <option value="maisProxima">Validade mais próxima</option>
+                        <option value="maisDistante">Validade mais distante</option>
+                    </select>
+                </div>
 
 
 
@@ -393,81 +403,81 @@ export const Estoque = () => {
                                     className={isEstoqueBaixo ? 'estoque-baixo' : ''}
                                 >
                                     <td>
-            {produto.imagem && (
-                <img
-                    style={{ width: '120px', cursor: 'pointer' }}
-                    src={produto.imagem}
-                    alt={produto.nome}
-                    className="product-image"
-                    onClick={handleImageClick}
-                />
-            )}
+                                        {produto.imagem && (
+                                            <img
+                                                style={{ width: '120px', cursor: 'pointer' }}
+                                                src={produto.imagem}
+                                                alt={produto.nome}
+                                                className="product-image"
+                                                onClick={handleImageClick}
+                                            />
+                                        )}
 
-            {/* Se estiver em zoom, exibe a imagem em tamanho grande */}
-            {isZoomed && (
-                <div 
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
-                        zIndex: 1000,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        cursor: 'zoom-out',
-                    }}
-                    onClick={handleImageClick}  // Fecha o zoom ao clicar na área
-                >
-                    <img
-                        src={produto.imagem}
-                        alt={produto.nome}
-                        style={{
-                            maxWidth: '90%',
-                            maxHeight: '90%',
-                            objectFit: 'contain',
-                        }}
-                    />
-                </div>
-            )}
-        </td>
+                                        {/* Se estiver em zoom, exibe a imagem em tamanho grande */}
+                                        {isZoomed && (
+                                            <div
+                                                style={{
+                                                    position: 'fixed',
+                                                    top: 0,
+                                                    left: 0,
+                                                    right: 0,
+                                                    bottom: 0,
+                                                    backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
+                                                    zIndex: 1000,
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    cursor: 'zoom-out',
+                                                }}
+                                                onClick={handleImageClick}  // Fecha o zoom ao clicar na área
+                                            >
+                                                <img
+                                                    src={produto.imagem}
+                                                    alt={produto.nome}
+                                                    style={{
+                                                        maxWidth: '90%',
+                                                        maxHeight: '90%',
+                                                        objectFit: 'contain',
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
+                                    </td>
 
                                     <td>{index + 1}</td>
-<td>{produto.nome}</td>
-<td>{produto.categoria}</td>
-<td>R$ {parseFloat(produto.preco).toFixed(2)}</td>
-<td>{produto.desconto ? produto.desconto+"%" : "0%"}</td>
+                                    <td>{produto.nome}</td>
+                                    <td>{produto.categoria}</td>
+                                    <td>R$ {parseFloat(produto.preco).toFixed(2)}</td>
+                                    <td>{produto.desconto ? produto.desconto + "%" : "0%"}</td>
                                     <td>
                                         {produto.quantidade}
                                         {isEstoqueBaixo && (
                                             <span className="aviso-estoque"> 🔴 Baixo estoque</span>
                                         )}
                                     </td>
-<td>
-  {produto.validade
-    ? new Date(produto.validade).toLocaleDateString('pt-BR')
-    : 'Sem validade 😱'}<br></br>
-    {produto.validade
-  ? (() => {
-      const hoje = new Date();
-      const validade = new Date(produto.validade);
-      const diff = validade - hoje;
-      const diasRestantes = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                                    <td>
+                                        {produto.validade
+                                            ? new Date(produto.validade).toLocaleDateString('pt-BR')
+                                            : 'Sem validade 😱'}<br></br>
+                                        {produto.validade
+                                            ? (() => {
+                                                const hoje = new Date();
+                                                const validade = new Date(produto.validade);
+                                                const diff = validade - hoje;
+                                                const diasRestantes = Math.ceil(diff / (1000 * 60 * 60 * 24));
 
-      if (diasRestantes < 0) {
-        return 'VENCIDO 💀';
-      } else if (diasRestantes <= 20) {
-        return `⚠️ Faltam ${diasRestantes} dias para vencer!`;
-      } else {
-        return `${diasRestantes} dias para vencer`;
-      }
-    })()
-  : 'Sem info 😵'}
-</td>
+                                                if (diasRestantes < 0) {
+                                                    return 'VENCIDO 💀';
+                                                } else if (diasRestantes <= 20) {
+                                                    return `⚠️ Faltam ${diasRestantes} dias para vencer!`;
+                                                } else {
+                                                    return `${diasRestantes} dias para vencer`;
+                                                }
+                                            })()
+                                            : 'Sem info 😵'}
+                                    </td>
 
-<td>Lote: {produto.lote || 'Sem lote 😢'}</td>
+                                    <td>Lote: {produto.lote || 'Sem lote 😢'}</td>
                                     <td>
                                         <input
                                             type="number"
@@ -492,78 +502,86 @@ export const Estoque = () => {
                 </table>
 
                 {editingProductId && (
-    <div className="edit-form">
-        <h3>Editar Produto</h3>
-        <label>
-            Nome:
-            <input
-                type="text"
-                value={editedProductData.nome}
-                onChange={(e) => setEditedProductData({ ...editedProductData, nome: e.target.value })}
-            />
-        </label>
-        <label>
-            Categoria:
-            <input
-                type="text"
-                value={editedProductData.categoria}
-                onChange={(e) => setEditedProductData({ ...editedProductData, categoria: e.target.value })}
-            />
-        </label>
-        <label>
-            Preço:
-            <input
-                type="number"
-                value={editedProductData.preco}
-                onChange={(e) => setEditedProductData({ ...editedProductData, preco: e.target.value })}
-            />
-        </label>
-        <label>
-            Quantidade:
-            <input
-                type="number"
-                value={editedProductData.quantidade}
-                onChange={(e) => setEditedProductData({ ...editedProductData, quantidade: e.target.value })}
-            />
-        </label>
-        <label>
-            Desconto %:
-            <input
-                type="number"
-                value={editedProductData.desconto}
-                onChange={(e) => setEditedProductData({ ...editedProductData, desconto: e.target.value })}
-            />
-        </label>
-        <label>
-            Validade (dd/mm/aaaa):
-            <input
-                type="text"
-                value={editedProductData.validade}
-                onChange={(e) => setEditedProductData({ ...editedProductData, validade: e.target.value })}
-                placeholder="Ex: 30/12/2025"
-            />
-        </label>
-        <label>
-            Lote:
-            <input
-                type="text"
-                value={editedProductData.lote}
-                onChange={(e) => setEditedProductData({ ...editedProductData, lote: e.target.value })}
-            />
-        </label>
-        <label>
-            Imagem:
-            <input
-                type="file"
-                onChange={handleImageChange}
-            />
-        </label>
-        <div>
-            <button onClick={handleSaveEdit}>Salvar</button>
-            <button onClick={handleCancelEdit}>Cancelar</button>
-        </div>
-    </div>
-)}
+                    <div className="edit-form">
+                        <h3>Editar Produto</h3>
+                        <label>
+                            Nome:
+                            <input
+                                type="text"
+                                value={editedProductData.nome}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, nome: e.target.value })}
+                            />
+                        </label>
+                        <label>
+                            Categoria:
+                            <input
+                                type="text"
+                                value={editedProductData.categoria}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, categoria: e.target.value })}
+                            />
+                        </label>
+                        <label>
+                            Preço de Custo:
+                            <input
+                                type="number"
+                                value={editedProductData.precoCusto}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, precoCusto: e.target.value })}
+                            />
+                        </label>
+                        <label>
+                            Preço:
+                            <input
+                                type="number"
+                                value={editedProductData.preco}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, preco: e.target.value })}
+                            />
+                        </label>
+                        <label>
+                            Quantidade:
+                            <input
+                                type="number"
+                                value={editedProductData.quantidade}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, quantidade: e.target.value })}
+                            />
+                        </label>
+                        <label>
+                            Desconto %:
+                            <input
+                                type="number"
+                                value={editedProductData.desconto}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, desconto: e.target.value })}
+                            />
+                        </label>
+                        <label>
+                            Validade (dd/mm/aaaa):
+                            <input
+                                type="text"
+                                value={editedProductData.validade}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, validade: e.target.value })}
+                                placeholder="Ex: 30/12/2025"
+                            />
+                        </label>
+                        <label>
+                            Lote:
+                            <input
+                                type="text"
+                                value={editedProductData.lote}
+                                onChange={(e) => setEditedProductData({ ...editedProductData, lote: e.target.value })}
+                            />
+                        </label>
+                        <label>
+                            Imagem:
+                            <input
+                                type="file"
+                                onChange={handleImageChange}
+                            />
+                        </label>
+                        <div>
+                            <button onClick={handleSaveEdit}>Salvar</button>
+                            <button onClick={handleCancelEdit}>Cancelar</button>
+                        </div>
+                    </div>
+                )}
 
 
                 {errorMessage && <p className="error-message">{errorMessage}</p>}
@@ -576,16 +594,22 @@ export const Estoque = () => {
                         <>
                             <h2>Preço Total: R${totalPrice.toFixed(2)}</h2>
 
-        {/* Se houver desconto, exibe o valor do desconto */}
-        {totalDesconto > 0 && (
-            <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
-        )}
+                            {/* Se houver desconto, exibe o valor do desconto */}
+                            {totalDesconto > 0 && (
+                                <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
+                            )}
+
+                            {totalLucro > 0 && (
+                                <h3>Lucro: R${totalLucro.toFixed(2)}</h3>
+                            )}
+
+
+
                             <button onClick={handleFinalizarCompra} className="finalize-button">
                                 Concluir Pagamento
                             </button>
                         </>
                     )}
-
                 </div>
 
                 {isLoading && (
