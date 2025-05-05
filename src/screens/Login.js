@@ -2,25 +2,22 @@ import React, { useState, useEffect } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "./LoginNovo.css";
-import img_login from "../images/img_login (1).svg"
+
 import { auth } from "../firebase";
 import {
   signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
   onAuthStateChanged,
 } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import LogoEstocaAi from "../images/LogoEstocaAi.svg";
-
-import IconeOlho from "../icones/icone-olho.png"; // Importando o ícone do olho
+import { FaEye, FaEyeSlash } from 'react-icons/fa';  // Ícones de olho aberto e fechado
+import Carrossel from "./Carrossel";
 
 export const Login = () => {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const navigate = useNavigate();
-  const googleProvider = new GoogleAuthProvider();
 
   useEffect(() => {
     // Verifica se o usuário está logado
@@ -34,25 +31,22 @@ export const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    // Verificar se o formulário é válido
+    const form = e.target;
+    if (!form.checkValidity()) {
+      toast.error("Por favor, preencha todos os campos corretamente!");
+      return;
+    }
+
     try {
       await signInWithEmailAndPassword(auth, email, senha);
       toast.success("Login realizado com sucesso!");
       navigate("/home");
     } catch (error) {
-      toast.error("Erro ao fazer login: ", error);
+      toast.error("Erro ao fazer login: " + error.message);
     }
   };
-
-  // const handleGoogleLogin = async () => {
-  //     try {
-  //         const result = await signInWithPopup(auth, googleProvider);
-  //         alert('Login com Google realizado com sucesso!');
-  //         navigate('/home');
-  //     } catch (error) {
-  //         console.error('Erro ao fazer login com Google: ', error);
-  //         alert('Erro ao fazer login com Google');
-  //     }
-  // };
 
   const toggleMostrarSenha = () => {
     setMostrarSenha(!mostrarSenha);
@@ -66,17 +60,19 @@ export const Login = () => {
             <img src={LogoEstocaAi} width={150} alt="Logo" />
           </div>
           <div className="login-title">
-            <div class="barra"></div>
+            <div className="barra"></div>
             <h1>Login</h1>
           </div>
-          <form onSubmit={handleLogin}> 
-                     <div className="form-group">
-                       <input
+          <form onSubmit={handleLogin} noValidate>
+            <div className="form-group">
+              <input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                title="Por favor, insira um email válido"
               />
               <i className="fas fa-envelope"></i>
             </div>
@@ -89,9 +85,8 @@ export const Login = () => {
                 required
               />
               <i className="fas fa-lock"></i>
-              <img
-                src={IconeOlho}
-                alt="Mostrar/Ocultar Senha"
+              {/* Ícone de olho */}
+              <span
                 className="icone-olho"
                 onClick={toggleMostrarSenha}
                 style={{
@@ -100,21 +95,15 @@ export const Login = () => {
                   top: "50%",
                   transform: "translateY(-50%)",
                   cursor: "pointer",
-                  width: "24px",
+                  fontSize: "20px",
                 }}
-              />
+              >
+                {mostrarSenha ? <FaEyeSlash /> : <FaEye />}
+              </span>
             </div>
             <button className="register-button" type="submit">
               Entrar
             </button>
-            {/* <div className="social-buttons">
-                        <i className="fab fa-google" onClick={handleGoogleLogin}></i>
-                    </div>
-                    <div className="google-login">
-                        <button className="btn google-btn" onClick={handleGoogleLogin}>
-                            <i className="fab fa-google"></i> Entrar com Google
-                        </button>
-                    </div> */}
             <p className="login-link">
               Não tem uma conta? <a href="/cadastro">Registre-se</a>
             </p>
@@ -122,19 +111,8 @@ export const Login = () => {
         </div>
       </div>
       <div className="right_side">
-  <div className="conteiner">
-    <div className="conteiner_1">
-      <div className="conteiner_2">
-        <h2>
-          Controle seu estoque com um clique,<br />organize seu mundo de negócios!
-        </h2>
-        <img src={img_login} alt="img_login" />
+        <Carrossel />
       </div>
-    </div>
-  </div>
-
-</div>
-
     </div>
   );
 };

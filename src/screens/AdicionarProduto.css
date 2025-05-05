@@ -25,52 +25,32 @@
     cursor: pointer;
 }
 
-.menu-item.active {
-    background-color: #0b4983;
-    /* Destaque para o item ativo */
-    border-radius: 50%;
-    padding: 10px;
-}
-
 .product-form-container {
     display: flex;
     padding: 20px;
     border-radius: 10px;
     background-color: #f8f8f8;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    height: 100vh;
 }
 
-.upload-section {
+.form-header {
     display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 1%;
+    padding: 1%;
     flex-direction: column;
-    gap: 10px;
-    margin-right: 20px;
-}
-
-.upload-box {
-    width: 120px;
-    height: 120px;
-    border: 2px dashed #ccc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-    background-color: #e0e0e0;
-}
-
-.upload-button {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #ddd;
-    border-radius: 5px;
-    cursor: pointer;
+    width: 70%;
+    height: 45vh;
+    border-radius: 0.8em;
 }
 
 .form-section {
-    flex: 1;
+    flex: 1 1;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
 }
 
 .form-group {
@@ -83,7 +63,128 @@
     font-weight: bold;
 }
 
-input[type="text"],
+.btn-group {
+    display: flex;
+    width: 90%;
+    align-items: center;
+    justify-content: space-between;
+    padding: .6%;
+    gap: 1%;
+}
+
+.btn-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    width: 35%;
+}
+
+.criar-categoria-btn {
+    color: #141414 !important;
+    padding: 4% !important;
+    font-weight: bolder !important;
+    font-size: 15px !important;
+    background-color: #3ac73a !important;
+}
+
+.criar-categoria-btn:hover {
+    background-color: #323333 !important;
+    color: #f1f1f1 !important;
+    transition: ease-in-out 0.6s;
+}
+
+.add-product-btn {
+    color: #141414 !important;
+    font-weight: bolder !important;
+    font-size: 15px !important;
+    background-color: #3577da !important;
+    padding: 4% !important;
+}
+
+.add-product-btn:hover {
+    background-color: #323333 !important;
+    color: #f1f1f1 !important;
+    transition: ease-in-out 0.6s;
+}
+
+.upload-section {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+}
+
+.upload-label {
+    background-color: #c4c4c4;
+    color: rgb(22, 22, 22);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: ease-in-out 0.3s;
+}
+
+.upload-label:hover {
+    background-color: #3d3e3f;
+    color: white;
+}
+
+.upload-section input[type="file"] {
+    display: none;
+}
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    box-sizing: border-box;
+    background-color: white;
+    color: #000000;
+    height: 5.6vh;
+}
+.nova-categoria {
+    margin-top: 10px;
+    width: 90%;
+}
+
+.nova-cat-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.nova-cat-row input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: white;
+    color: #000;
+}
+
+.nova-cat-row .add-cat {
+    background-color: #3ac73a;
+    color: #141414;
+    font-weight: bold;
+    font-size: 14px;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.nova-cat-row .add-cat:hover {
+    background-color: #323333;
+    color: #f1f1f1;
+}
+
+.add-product-btn input[type="text"],
 input[type="number"],
 select,
 textarea {
@@ -101,6 +202,7 @@ textarea {
 .form-row {
     display: flex;
     gap: 15px;
+    width: 90%;
 }
 
 .variant-group {
@@ -118,7 +220,7 @@ textarea {
     font-size: 18px;
 }
 
-/* 0000000000 RESPONSIVIDADE 0000000000000 */
+/* 0000000000 RESPONSIVIDADE 0000000000000 
 .criar-categoria-btn {
     margin-top: 8px;
     background-color: #f0ad4e;
@@ -128,3 +230,4 @@ textarea {
     cursor: pointer;
     border-radius: 4px;
 }
+*/

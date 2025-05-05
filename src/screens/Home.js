@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import { db, auth } from '../firebase';
 import { collection, getDocs, query, where, addDoc, deleteDoc, doc } from 'firebase/firestore';
@@ -7,6 +8,11 @@ import IconeHome from '../icones/icone-home.svg';
 import IconeEstoque from '../icones/iconeEstoque.jpeg';
 import IconeAdd from '../icones/iconeAdd.jpeg';
 import Logo from '../images/logoSemFundo.png';
+import LogoSide from '../images/logoSide.png';
+import EstoqueSide from '../images/estoque.png';
+import AddSide from '../images/botao-adicionar.png';
+import FuncionarioSide from '../images/equipe.png';
+import Logout from '../images/logout.png';
 
 // Importando e registrando componentes necessários do Chart.js
 import {
@@ -35,8 +41,9 @@ ChartJS.register(
     RadialLinearScale // Registra para gráficos de radar
 );
 
-
 export const Home = () => {
+    const navigate = useNavigate();
+
     const [produtos, setProdutos] = useState([]);
     const [user, setUser] = useState(null);
     const [nomeUsuario, setNomeUsuario] = useState('');
@@ -44,17 +51,16 @@ export const Home = () => {
     const [historicoVendas, setHistoricoVendas] = useState([]);
     const [historicoEntradas, setHistoricoEntradas] = useState([]);
 
-
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (currentUser) {
                 setUser(currentUser);
                 fetchProdutos(currentUser.uid);
                 fetchNomeUsuario(currentUser.uid);
-                fetchHistoricoVendas(); // Carregar histórico de vendas ao logar
+                fetchHistoricoVendas(currentUser.uid);
+                fetchHistoricoEntradas(currentUser.uid); // ✅ Adicione isto!
             }
         });
-
         return () => unsubscribe();
     }, []);
 
@@ -69,7 +75,7 @@ export const Home = () => {
         for (const row of dados) {
             const values = headers.map(header => {
                 const escaped = ('' + row[header]).replace(/"/g, '\\"');
-                return `"${escaped}"`;
+                return `${escaped}`;
             });
             csvRows.push(values.join(','));
         }
@@ -163,8 +169,6 @@ export const Home = () => {
         }
     };
 
-
-
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (currentUser) {
@@ -179,19 +183,19 @@ export const Home = () => {
         return () => unsubscribe();
     }, []);
 
-
     const registrarVenda = async (produto, quantidade) => {
         try {
             // Salva a venda no Firestore
-            await addDoc(collection(db, 'historico_vendas'), {
-                nomeProduto: produto.nome,
+            await addDoc(collection(db, 'historicoVendas'), {
+                nome: produto.nome,
                 quantidadeVendida: quantidade,
                 usuario: nomeUsuario,
+                userId: user.uid,
                 data: new Date(),
             });
 
             // Atualiza o estado com o histórico de vendas
-            fetchHistoricoVendas();
+            fetchHistoricoVendas(user.uid);
         } catch (error) {
             console.error('Erro ao registrar a venda:', error);
         }
@@ -289,6 +293,7 @@ export const Home = () => {
             ],
         };
     };
+
     const processarVendasPorDia = () => {
         const vendasPorDia = {};
 
@@ -314,59 +319,16 @@ export const Home = () => {
         };
     };
 
-    const getEntradasPorDia = () => {
-        const entradasPorProduto = {};
-
-        historicoEntradas.forEach((entrada) => {
-            const dataEntrada = entrada.data ? new Date(entrada.data.toDate()).toLocaleDateString('pt-BR') : 'Data inválida';
-            const nomeProduto = entrada.nomeProduto;
-
-            if (!entradasPorProduto[nomeProduto]) {
-                entradasPorProduto[nomeProduto] = {};
-            }
-
-            if (!entradasPorProduto[nomeProduto][dataEntrada]) {
-                entradasPorProduto[nomeProduto][dataEntrada] = 0;
-            }
-
-            entradasPorProduto[nomeProduto][dataEntrada] += entrada.quantidade;
-        });
-
-        // Pegar todas as datas únicas
-        const todasAsDatas = Array.from(
-            new Set(Object.values(entradasPorProduto).flatMap(produto => Object.keys(produto)))
-        ).sort((a, b) => {
-            const [d1, m1, y1] = a.split('/');
-            const [d2, m2, y2] = b.split('/');
-            return new Date(`${y1}-${m1}-${d1}`) - new Date(`${y2}-${m2}-${d2}`);
-        });
-
-        // Criar datasets para cada produto
-        const datasets = Object.entries(entradasPorProduto).map(([produto, datas]) => ({
-            label: produto,
-            data: todasAsDatas.map(data => datas[data] || 0),
-            backgroundColor: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.6)`,
-            borderColor: 'rgba(0, 0, 0, 0.5)',
-            borderWidth: 1
-        }));
-
-        return {
-            labels: todasAsDatas,
-            datasets
-        };
-    };
-
-
-
     const handleLogout = () => {
         auth.signOut()
-            .then(() => {
-                console.log('Usuário deslogado com sucesso');
-                setUser(null);
-            })
-            .catch((error) => {
-                console.error('Erro ao deslogar:', error);
-            });
+        .then(() => {
+            console.log('Usuário deslogado com sucesso');
+            setUser(null); // Se você precisar limpar o estado local do usuário
+            navigate('/login'); // Redireciona para a página /login
+        })
+        .catch((error) => {
+            console.error('Erro ao deslogar:', error);
+        });
     };
 
     const calcularTotalVendas = () => {
@@ -417,9 +379,6 @@ export const Home = () => {
         };
     };
 
-
-
-
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((currentUser) => {
             if (currentUser) {
@@ -429,7 +388,6 @@ export const Home = () => {
 
         return () => unsubscribe();
     }, []);
-
 
     const calcularLucroTotal = () => {
         return historicoVendas.reduce((total, venda) => {
@@ -451,28 +409,51 @@ export const Home = () => {
         ],
     };
 
-
     return (
         <div className="dashboard-container">
             <aside className="sidebar">
                 {/* Sidebar conteúdo */}
-                <a href='/' style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}>                <img src={Logo} style={{ width: '140%' }} /></a>
-                <a href='/adicionarproduto' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
-                <a href='/estoque' style={{ display: 'flex', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+                <a href='/home'>
+                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
+                    <span>Estocaí</span>
+                </a>
+                
+                <a href='/estoque'>                
+                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Estoque</span>
+                </a>
+
+                <a href='/adicionarproduto'>               
+                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Adicionar</span>
+                </a>
+
+                <a href='/cadastro-usuario'>               
+                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Funcionário</span>
+                </a>
+
+                <a href='#' onClick={handleLogout}>               
+                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Sair</span>
+                </a>
             </aside>
+
             <main className="dashboard-main">
-                <button onClick={handleLogout} className="logout-button">Sair</button>
                 <header className="dashboard-header">
                     <h1>Dashboard</h1>
+
                     <div className="total-vendas">
                         <h3>Total de Vendas</h3>
                         <p>{calcularTotalVendas()} itens vendidos</p>
                     </div>
+
                     <div className="user-profile">
                         <span>{nomeUsuario || 'Usuário'}</span>
                         <i className="fas fa-user-circle"></i>
                     </div>
                 </header>
+
                 <section className="dashboard-details">
                     <div className="stock-summary" style={{ height: '300px' }} onClick={handleChartClick}>
                         <h3>Resumo De Estoque</h3>
@@ -504,11 +485,11 @@ export const Home = () => {
 
                     <section className="historico-entradas stock-summary">
                         <h2>Histórico de Entradas</h2>
+
                         <div className="botoes-container">
                             <button className='button-csv' onClick={() => exportarCSV(entradasFormatadas, 'entradas.csv')}>Baixar CSV</button>
                             <button className='limpar-historico-btn' onClick={limparHistoricoEntradas}>Limpar Histórico</button>
                         </div>
-
 
                         {historicoEntradas.length > 0 ? (
                             <ul>
@@ -524,8 +505,6 @@ export const Home = () => {
                         )}
                     </section>
 
-
-
                     <section className="grafico-pizza stock-summary">
                         <h2>Produtos Mais Vendidos</h2>
                         {historicoVendas.length > 0 ? (
@@ -534,6 +513,7 @@ export const Home = () => {
                             <p>Nenhuma venda registrada para exibir.</p>
                         )}
                     </section>
+
                     {/* 
                     <section className="grafico-dia-venda stock-summary" style={{ height: '300px', marginTop: '-200px' }}>
                     <h2>Quantidade de Vendas Realizadas por Dia</h2>
@@ -556,7 +536,6 @@ export const Home = () => {
                             <PolarArea data={data} />
                         </div>
                     </section>
-
                 </section>
             </main>
         </div>

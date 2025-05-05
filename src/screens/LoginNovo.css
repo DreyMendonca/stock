@@ -27,7 +27,9 @@
 }
 
 .logo {
-  margin-bottom: 10%;
+  align-items: baseline;
+  margin-bottom: 5%;
+  margin-left: -5%;
 }
 /* Formulário em si */
 .register-form {

@@ -1,429 +1,242 @@
-import React, { useState } from 'react';
-import './Cadastro.css';
-import { db, auth } from '../firebase'; // Importação do Firebase Auth e Firestore
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./Cadastro.css";
+import { db, auth } from "../firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
+} from "firebase/auth";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LogoEstocaAi from "../images/LogoEstocaAi.svg";
-import img_login from "../images/img_login (1).svg";
+import Carrossel from "./Carrossel";
+import { FaEye, FaEyeSlash } from 'react-icons/fa';  // Ícones de olho aberto e fechado
 
 export const Cadastro = () => {
-    const [formData, setFormData] = useState({
-        usuario: '',
-        email: '',
-        telefone: '',
-        senha: '',
-        confirmarSenha: ''
-    });
+  const navigate = useNavigate();
 
-    const googleProvider = new GoogleAuthProvider();
+  const [formData, setFormData] = useState({
+    usuario: "",
+    email: "",
+    telefone: "",
+    senha: "",
+    confirmarSenha: "",
+  });
+  const [mostrarSenha, setMostrarSenha] = useState(false);  // Estado para controlar a visibilidade da senha
+  const googleProvider = new GoogleAuthProvider();
 
-    // Função para formatar o número de telefone
-    const mascaraTelefone = (value) => {
-        return value
-            .replace(/\D/g, '') // Remove tudo o que não for número
-            .replace(/^(\d{2})(\d)/, '($1) $2') // Adiciona o parênteses e o espaço
-            .replace(/(\d{5})(\d)/, '$1-$2') // Adiciona o hífen
-            .substring(0, 15); // Limita a 15 caracteres
-    };
+  const mascaraTelefone = (value) => {
+    return value
+      .replace(/\D/g, "")
+      .replace(/^(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .substring(0, 15);
+  };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "telefone") {
+      setFormData({ ...formData, [name]: mascaraTelefone(value) });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+  };
 
-        // Aplica a máscara no telefone
-        if (name === 'telefone') {
-            setFormData({ ...formData, [name]: mascaraTelefone(value) });
-        } else {
-            setFormData({ ...formData, [name]: value });
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    // Verificar se as senhas coincidem
+    if (formData.senha !== formData.confirmarSenha) {
+      toast.error("As senhas não coincidem");
+      return;
+    }
 
-        // Verificação de senha
-        if (formData.senha !== formData.confirmarSenha) {
-            toast.error('As senhas não coincidem');
-            return;
-        }
+    // Verificar se o e-mail é válido
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      toast.error("Por favor, insira um e-mail válido");
+      return;
+    }
 
-        // Validação de e-mail
-        if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            toast.error('Por favor, insira um e-mail válido');
-            return;
-        }
+    // Verificar o comprimento da senha
+    if (formData.senha.length < 6) {
+      toast.error("A senha deve ter pelo menos 6 caracteres");
+      return;
+    }
 
-        // Validação de senha
-        if (formData.senha.length < 6) {
-            toast.error('A senha deve ter pelo menos 6 caracteres');
-            return;
-        }
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.senha
+      );
 
-        try {
-            // Criar o usuário no Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.senha);
+      // Adicionar os dados do usuário ao Firestore
+      await addDoc(collection(db, "usuarios"), {
+        usuario: formData.usuario,
+        email: formData.email,
+        telefone: formData.telefone,
+        uid: userCredential.user.uid,
+        role: "admin",
+        parentUid: null,
+      });
 
-            // Obter o usuário recém-criado
-            const user = userCredential.user;
+      toast.success("Admin criado com sucesso!");
+      await auth.signOut();
+      navigate("/login");
+    } catch (error) {
+      console.error("Erro ao registrar usuário: ", error);
+      if (error.code === "auth/email-already-in-use") {
+        toast.error("Este e-mail já está cadastrado");
+      } else {
+        toast.error("Erro ao registrar usuário. Tente novamente.");
+      }
+    }
+  };
 
-            // Agora, salve os dados do usuário no Firestore
-            await addDoc(collection(db, 'usuarios'), {
-                usuario: formData.usuario,
-                email: formData.email,
-                telefone: formData.telefone,
-                uid: user.uid // Salvando o UID do usuário para referência
-            });
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
 
-            toast.success('Cadastro realizado com sucesso!');
-            setFormData({
-                usuario: '',
-                email: '',
-                telefone: '',
-                senha: '',
-                confirmarSenha: ''
-            });
-        } catch (error) {
-            console.error('Erro ao registrar usuário: ', error);
-            toast.error('Erro ao registrar usuário');
-        }
-    };
+      const userExists = await getDocs(collection(db, "usuarios")).then(
+        (snapshot) => snapshot.docs.some((doc) => doc.data().uid === user.uid)
+      );
 
-    const handleGoogleLogin = async () => {
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
+      if (!userExists) {
+        await addDoc(collection(db, "usuarios"), {
+          usuario: user.displayName || "Usuário Google",
+          email: user.email,
+          telefone: user.phoneNumber || "Não fornecido",
+          uid: user.uid,
+          role: "admin",
+          parentUid: null,
+        });
+      }
 
-            // Verifique se o usuário já existe no Firestore
-            const userExists = await getDocs(collection(db, 'usuarios')).then(snapshot =>
-                snapshot.docs.some(doc => doc.data().uid === user.uid)
-            );
+      toast.success("Login com Google realizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao fazer login com Google:", error);
+      toast.error("Erro ao fazer login com Google");
+    }
+  };
 
-            if (!userExists) {
-                // Salve os dados do usuário no Firestore caso ele seja novo
-                await addDoc(collection(db, 'usuarios'), {
-                    usuario: user.displayName || 'Usuário Google',
-                    email: user.email,
-                    telefone: user.phoneNumber || 'Não fornecido',
-                    uid: user.uid
-                });
-            }
+  // Função para alternar entre mostrar e esconder a senha
+  const toggleMostrarSenha = () => {
+    setMostrarSenha(!mostrarSenha);
+  };
 
-            toast.success('Login com Google realizado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao fazer login com Google:', error);
-            toast.error('Erro ao fazer login com Google');
-        }
-    };
+  return (
+    <div className="main_conteiner">
+      {/* Imagem - agora do lado esquerdo */}
+      <div className="left_side">
+        <Carrossel />
+      </div>
 
-    return (
-        <div className="main_conteiner">
-        <div className="register-container" >
-            <div className="register-form">
-            <div className="logo">
+      <div className="register-container">
+        <div className="register-form">
+          <div className="logo">
             <img src={LogoEstocaAi} width={150} alt="Logo" />
           </div>
-                <div className="login-title">
-            <div class="barra"></div>
+
+          <div className="login-title">
+            <div className="barra"></div>
             <h1>Cadastro</h1>
           </div>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <input
-                            type="text"
-                            placeholder="Nome da loja"
-                            name="usuario"
-                            value={formData.usuario}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-user"></i>
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-envelope"></i>
-                    </div>
-                    <div className="form-group phone-group">
-                        <input
-                            type="tel"
-                            placeholder="Telefone"
-                            name="telefone"
-                            value={formData.telefone}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-phone"></i>
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="password"
-                            placeholder="Senha"
-                            name="senha"
-                            value={formData.senha}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-lock"></i>
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="password"
-                            placeholder="Confirmar senha"
-                            name="confirmarSenha"
-                            value={formData.confirmarSenha}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-lock"></i>
-                    </div>
-                    <button className="register-button" type="submit">Registrar</button>
-                    <div className="social-buttons">
-                        <i className="fab fa-google"></i>
-                        <i className="fas fa-envelope"></i>
-                        <i className="fab fa-whatsapp"></i>
-                    </div>
-                    <p className="login-link">Já tem uma conta? <a href="/login">Faça Login!</a></p>
-                </form>
-                {/* <div className="google-login">
-                    <button className="btn google-btn" onClick={handleGoogleLogin}>
-                        <i className="fab fa-google"></i> Entrar com Google
-                    </button> */}
 
-                </div>
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <input
+                type="text"
+                placeholder="Nome da loja"
+                name="usuario"
+                value={formData.usuario}
+                onChange={handleChange}
+              />
+              <i className="fas fa-user"></i>
             </div>
-            
-            <div className="right_side">
-                            <div className="conteiner">
-                              <div className="conteiner_1">
-                                <div className="conteiner_2">
-                                  <h2>
-                                    Controle seu estoque com um clique,
-                                    <br />
-                                    organize seu mundo de negócios!
-                                  </h2>
-                                  <img src={img_login} alt="img_login" />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+
+            <div className="form-group">
+              <input
+                type="email"
+                placeholder="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+              <i className="fas fa-envelope"></i>
             </div>
-         
-           
-        
-    );
-};
 
-export default Cadastro;
-
-
-
-/*
- import React, { useState } from 'react';
-import './Cadastro.css';
-import { db, auth } from '../firebase'; // Importação do Firebase Auth e Firestore
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from 'firebase/auth';
-import { collection, addDoc, getDocs } from 'firebase/firestore';
-import ImagemCadastro from '../images/image-login-cadastro.png';
-
-export const Cadastro = () => {
-    const [formData, setFormData] = useState({
-        usuario: '',
-        email: '',
-        telefone: '',
-        senha: '',
-        confirmarSenha: ''
-    });
-
-    const googleProvider = new GoogleAuthProvider();
-    const facebookProvider = new FacebookAuthProvider(); // Provedor de autenticação do Facebook
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-
-        // Verificação de senha
-        if (formData.senha !== formData.confirmarSenha) {
-            alert('As senhas não coincidem');
-            return;
-        }
-
-        // Validação de e-mail
-        if (!/\S+@\S+\.\S+/.test(formData.email)) {
-            alert('Por favor, insira um e-mail válido');
-            return;
-        }
-
-        // Validação de senha
-        if (formData.senha.length < 6) {
-            alert('A senha deve ter pelo menos 6 caracteres');
-            return;
-        }
-
-        try {
-            // Criar o usuário no Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.senha);
-
-            // Obter o usuário recém-criado
-            const user = userCredential.user;
-
-            // Agora, salve os dados do usuário no Firestore
-            await addDoc(collection(db, 'usuarios'), {
-                usuario: formData.usuario,
-                email: formData.email,
-                telefone: formData.telefone,
-                uid: user.uid // Salvando o UID do usuário para referência
-            });
-
-            alert('Cadastro realizado com sucesso!');
-            setFormData({
-                usuario: '',
-                email: '',
-                telefone: '',
-                senha: '',
-                confirmarSenha: ''
-            });
-        } catch (error) {
-            console.error('Erro ao registrar usuário: ', error);
-            alert('Erro ao registrar usuário');
-        }
-    };
-
-    // Função de login com Google
-    const handleGoogleLogin = async () => {
-        try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-
-            // Verifique se o usuário já existe no Firestore
-            const userExists = await getDocs(collection(db, 'usuarios')).then(snapshot =>
-                snapshot.docs.some(doc => doc.data().uid === user.uid)
-            );
-
-            if (!userExists) {
-                // Salve os dados do usuário no Firestore caso ele seja novo
-                await addDoc(collection(db, 'usuarios'), {
-                    usuario: user.displayName || 'Usuário Google',
-                    email: user.email,
-                    telefone: user.phoneNumber || 'Não fornecido',
-                    uid: user.uid
-                });
-            }
-
-            alert('Login com Google realizado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao fazer login com Google:', error);
-            alert('Erro ao fazer login com Google');
-        }
-    };
-
-    // Função de login com Facebook
-    const handleFacebookLogin = async () => {
-        try {
-            const result = await signInWithPopup(auth, facebookProvider);
-            const user = result.user;
-
-            // Verifique se o usuário já existe no Firestore
-            const userExists = await getDocs(collection(db, 'usuarios')).then(snapshot =>
-                snapshot.docs.some(doc => doc.data().uid === user.uid)
-            );
-
-            if (!userExists) {
-                // Salve os dados do usuário no Firestore caso ele seja novo
-                await addDoc(collection(db, 'usuarios'), {
-                    usuario: user.displayName || 'Usuário Facebook',
-                    email: user.email,
-                    telefone: user.phoneNumber || 'Não fornecido',
-                    uid: user.uid
-                });
-            }
-
-            alert('Login com Facebook realizado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao fazer login com Facebook:', error);
-            alert('Erro ao fazer login com Facebook');
-        }
-    };
-
-    return (
-        <div className="register-container">
-            <div className="register-form">
-                <h2>Registro</h2>
-                <form onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <input
-                            type="text"
-                            placeholder="USUÁRIO"
-                            name="usuario"
-                            value={formData.usuario}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-user"></i>
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="email"
-                            placeholder="EMAIL"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-envelope"></i>
-                    </div>
-                    <div className="form-group phone-group">
-                        <input
-                            type="tel"
-                            placeholder="TELEFONE"
-                            name="telefone"
-                            value={formData.telefone}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-phone"></i>
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="password"
-                            placeholder="SENHA"
-                            name="senha"
-                            value={formData.senha}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-lock"></i>
-                    </div>
-                    <div className="form-group">
-                        <input
-                            type="password"
-                            placeholder="CONFIRMAR SENHA"
-                            name="confirmarSenha"
-                            value={formData.confirmarSenha}
-                            onChange={handleChange}
-                        />
-                        <i className="fas fa-lock"></i>
-                    </div>
-                    <button className="register-button" type="submit">Registrar</button>
-                    <div className="social-buttons">
-                        <button className="btn google-btn" onClick={handleGoogleLogin}>
-                            <i className="fab fa-google"></i> Entrar com Google
-                        </button>
-                        <button className="btn facebook-btn" onClick={handleFacebookLogin}>
-                            <i className="fab fa-facebook"></i> Entrar com Facebook
-                        </button>
-                    </div>
-                    <p className="login-link">Já tem uma conta? <a href="/login">Faça Login!</a></p>
-                </form>
+            <div className="form-group phone-group">
+              <input
+                type="tel"
+                placeholder="Telefone"
+                name="telefone"
+                value={formData.telefone}
+                onChange={handleChange}
+              />
+              <i className="fas fa-phone"></i>
             </div>
-            <div className="register-image">
-                <img src={ImagemCadastro} alt="imagem" />
+
+            <div className="form-group" style={{ position: "relative" }}>
+              <input
+                type={mostrarSenha ? "text" : "password"}
+                placeholder="Senha"
+                name="senha"
+                value={formData.senha}
+                onChange={handleChange}
+              />
+              <i className="fas fa-lock"></i>
+              {/* Ícone de olho */}
+              <span
+                className="icone-olho"
+                onClick={toggleMostrarSenha}
+                style={{
+                  position: "absolute",
+                  right: "10px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  cursor: "pointer",
+                  fontSize: "20px",
+                }}
+              >
+                {mostrarSenha ? <FaEyeSlash /> : <FaEye />}
+              </span>
             </div>
+
+            <div className="form-group">
+              <input
+                type="password"
+                placeholder="Confirmar senha"
+                name="confirmarSenha"
+                value={formData.confirmarSenha}
+                onChange={handleChange}
+              />
+              <i className="fas fa-lock"></i>
+            </div>
+
+            <button className="register-button" type="submit">
+              Registrar
+            </button>
+
+            <div className="social-buttons">
+              <i className="fab fa-google" onClick={handleGoogleLogin}></i>
+              <i className="fas fa-envelope"></i>
+              <i className="fab fa-whatsapp"></i>
+            </div>
+
+            <p className="login-link">
+              Já tem uma conta? <a href="/login">Faça Login!</a>
+            </p>
+          </form>
         </div>
-    );
+      </div>
+
+      {/* Toast Container para exibir as notificações */}
+      <ToastContainer />
+    </div>
+  );
 };
 
 export default Cadastro;
-
-*/

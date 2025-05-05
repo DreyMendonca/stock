@@ -10,7 +10,11 @@ import { deleteDoc } from 'firebase/firestore'; // Importe o deleteDoc
 import IconeEstoque from '../icones/iconeEstoque.jpeg';
 import IconeAdd from '../icones/iconeAdd.jpeg';
 import Logo from '../images/logoSemFundo.png';
-
+import LogoSide from '../images/logoSide.png';
+import EstoqueSide from '../images/estoque.png';
+import AddSide from '../images/botao-adicionar.png';
+import FuncionarioSide from '../images/equipe.png';
+import Logout from '../images/logout.png';
 
 export const Estoque = () => {
     const [produtos, setProdutos] = useState([]);
@@ -18,6 +22,7 @@ export const Estoque = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [quantidades, setQuantidades] = useState({});
     const [totalPrice, setTotalPrice] = useState(0);
+    const [totalDesconto, setTotalDesconto] = useState(0);
     const [showQRCode, setShowQRCode] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
@@ -27,6 +32,8 @@ export const Estoque = () => {
     const [imagem, setImagem] = useState(null);
     const [categorias, setCategorias] = useState([]);
     const [selectedCategoria, setSelectedCategoria] = useState('');  // Alterado para selectedCategoria
+    const [tipoFiltro, setTipoFiltro] = useState('maisProxima'); // 'maisProxima' é o valor inicial
+    const [isZoomed, setIsZoomed] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -38,6 +45,22 @@ export const Estoque = () => {
         });
         return () => unsubscribe();
     }, []);
+
+    const handleLogout = () => {
+        auth.signOut()
+        .then(() => {
+            console.log('Usuário deslogado com sucesso');
+            setUser(null); // Se você precisar limpar o estado local do usuário
+            navigate('/login'); // Redireciona para a página /login
+        })
+        .catch((error) => {
+            console.error('Erro ao deslogar:', error);
+        });
+    };
+
+    const handleImageClick = () => {
+        setIsZoomed(!isZoomed);  // Alterna o estado de zoom
+    };
 
     useEffect(() => {
         const fetchCategorias = async () => {
@@ -94,15 +117,32 @@ export const Estoque = () => {
 
     const handleCalcular = () => {
         let total = 0;
+        let totalDesconto = 0; // Variáveis com let, pois precisam ser modificadas
         produtos.forEach((produto) => {
             const quantidade = parseInt(quantidades[produto.id] || 0, 10);
             if (quantidade > 0) {
                 const preco = parseFloat(produto.preco) || 0;
-                total += quantidade * preco;
+                const desconto = parseFloat(produto.desconto) || 0;
+    
+                // Calcular o valor sem desconto
+                const totalSemDesconto = quantidade * preco;
+    
+                // Calcular o valor do desconto
+                const valorDesconto = (totalSemDesconto * desconto) / 100;
+    
+                // Subtrair o valor do desconto do total sem desconto
+                total += totalSemDesconto - valorDesconto;
+    
+                // Acumular o valor do desconto
+                totalDesconto += valorDesconto;
             }
         });
+    
         setTotalPrice(total);
+        setTotalDesconto(totalDesconto); // Atualiza o valor do desconto
     };
+    
+    
 
     const handleFinalizarCompra = async () => {
         setIsLoading(true);
@@ -183,6 +223,8 @@ export const Estoque = () => {
             preco: produto.preco,
             quantidade: produto.quantidade,
             desconto: produto.desconto,
+            validade: produto.validade || '',
+        lote: produto.lote || '',
             imagem: produto.imagem || ''
         });
     };
@@ -203,6 +245,13 @@ export const Estoque = () => {
                 ...editedProductData,
                 imagem: novaImagemUrl
             });
+
+            // Atualiza o produto na lista local, sem precisar de refresh
+        setProdutos(prevProdutos => prevProdutos.map(produto =>
+            produto.id === editingProductId
+                ? { ...produto, ...editedProductData, imagem: novaImagemUrl } // Atualiza o produto editado
+                : produto
+        ));
 
             setEditingProductId(null);
             setEditedProductData({});
@@ -226,6 +275,22 @@ export const Estoque = () => {
         return nomeMatch && categoriaMatch;
     });
 
+    const handleFiltroValidade = (produtos, tipoFiltro) => {
+        return produtos.sort((a, b) => {
+            const validadeA = new Date(a.validade);
+            const validadeB = new Date(b.validade);
+
+            if (tipoFiltro === 'maisProxima') {
+                return validadeA - validadeB; // Ordena pela validade mais próxima
+            } else if (tipoFiltro === 'maisDistante') {
+                return validadeB - validadeA; // Ordena pela validade mais distante
+            }
+            return 0;
+        });
+    };
+
+    const produtosFiltrados = handleFiltroValidade(produtos, tipoFiltro);
+
     const handleCategoriaChange = (e) => {
         setSelectedCategoria(e.target.value);  // Alterado para setSelectedCategoria
     };
@@ -234,52 +299,284 @@ export const Estoque = () => {
 
 
     return (
-        <div className="estoque-container">
+        <div className="container-default">
             <aside className="sidebar">
-                <a href='/'>                <img src={Logo} style={{ width: '140%' }} /></a>
-                <a href='/adicionarproduto' style={{ display: 'absolute', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeEstoque} style={{ width: '60%' }} /></a>
-                <a href='/estoque' style={{ display: 'absolute', justifyContent: 'center', marginBottom: '30px' }}>                <img src={IconeAdd} style={{ width: '60%' }} /></a>
+                {/* Sidebar conteúdo */}
+                <a href='/home'>
+                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
+                    <span>Estocaí</span>
+                </a>
+                
+                <a href='/estoque'>                
+                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Estoque</span>
+                </a>
+
+                <a href='/adicionarproduto'>               
+                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Adicionar</span>
+                </a>
+
+                <a href='/cadastro-usuario'>               
+                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Funcionário</span>
+                </a>
+
+                <a href='#' onClick={handleLogout}>               
+                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
+                    <span>Sair</span>
+                </a>
             </aside>
-            <h1>Estoque</h1>
+
+            <div className="estoque-container">
+                <h1>Estoque</h1>
+
+                <div className="estoque-search">
+                    <input
+                        type="text"
+                        placeholder="Pesquisar produto..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                </div>
+
+                <div className="filtro-categoria">
+                    <label>Filtrar por Categoria:</label>
+                    <select
+                        value={selectedCategoria}
+                        onChange={handleCategoriaChange}
+                    >
+                        <option value="">Todas</option>
+                        {categorias.map((categoria, index) => (
+                            <option key={index} value={categoria}>{categoria}</option>
+                        ))}
+                    </select>
+                </div><br></br>
+
+                <div className="filtro-validade">
+    <label>Filtrar por Validade:</label>
+    <select
+        value={tipoFiltro} // Utiliza o estado tipoFiltro
+        onChange={(e) => setTipoFiltro(e.target.value)} // Atualiza o estado com a opção selecionada
+    >
+        <option value="maisProxima">Validade mais próxima</option>
+        <option value="maisDistante">Validade mais distante</option>
+    </select>
+</div>
+
+
+
+                <table className="product-table">
+                    <thead>
+                        <tr>
+                            <th>Imagem</th>
+                            <th>ID</th>
+                            <th>Nome do Produto</th>
+                            <th>Categoria</th>
+                            <th>Preço</th>
+                            <th>Desconto</th>
+                            <th>Estoque</th>
+                            <th>Validade</th>
+                            <th>Lote</th>
+                            <th>Quantidade Para Venda</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredProdutos.map((produto, index) => {
+                            const isEstoqueBaixo = produto.quantidade < 30;
+
+                            return (
+                                <tr
+                                    key={produto.id}
+                                    className={isEstoqueBaixo ? 'estoque-baixo' : ''}
+                                >
+                                    <td>
+            {produto.imagem && (
+                <img
+                    style={{ width: '120px', cursor: 'pointer' }}
+                    src={produto.imagem}
+                    alt={produto.nome}
+                    className="product-image"
+                    onClick={handleImageClick}
+                />
+            )}
+
+            {/* Se estiver em zoom, exibe a imagem em tamanho grande */}
+            {isZoomed && (
+                <div 
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
+                        zIndex: 1000,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: 'zoom-out',
+                    }}
+                    onClick={handleImageClick}  // Fecha o zoom ao clicar na área
+                >
+                    <img
+                        src={produto.imagem}
+                        alt={produto.nome}
+                        style={{
+                            maxWidth: '90%',
+                            maxHeight: '90%',
+                            objectFit: 'contain',
+                        }}
+                    />
+                </div>
+            )}
+        </td>
+
+                                    <td>{index + 1}</td>
+<td>{produto.nome}</td>
+<td>{produto.categoria}</td>
+<td>R$ {parseFloat(produto.preco).toFixed(2)}</td>
+<td>{produto.desconto ? produto.desconto+"%" : "0%"}</td>
+                                    <td>
+                                        {produto.quantidade}
+                                        {isEstoqueBaixo && (
+                                            <span className="aviso-estoque"> 🔴 Baixo estoque</span>
+                                        )}
+                                    </td>
+<td>
+  {produto.validade
+    ? new Date(produto.validade).toLocaleDateString('pt-BR')
+    : 'Sem validade 😱'}<br></br>
+    {produto.validade
+  ? (() => {
+      const hoje = new Date();
+      const validade = new Date(produto.validade);
+      const diff = validade - hoje;
+      const diasRestantes = Math.ceil(diff / (1000 * 60 * 60 * 24));
+
+      if (diasRestantes < 0) {
+        return 'VENCIDO 💀';
+      } else if (diasRestantes <= 20) {
+        return `⚠️ Faltam ${diasRestantes} dias para vencer!`;
+      } else {
+        return `${diasRestantes} dias para vencer`;
+      }
+    })()
+  : 'Sem info 😵'}
+</td>
+
+<td>Lote: {produto.lote || 'Sem lote 😢'}</td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            value={quantidades[produto.id] || ''}
+                                            onChange={(e) => handleQuantityChange(produto.id, e.target.value)}
+                                            min="1"
+                                        />
+                                    </td>
+                                    <td>
+                                        <button onClick={() => handleEditClick(produto)} className="edit-button">
+                                            <i className="fa fa-pencil"></i> Editar
+                                        </button>
+                                        <button onClick={() => handleDelete(produto.id)} className="delete-button">
+                                            <i className="fa fa-trash"></i> Excluir
+                                        </button>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+
+                </table>
+
+                {editingProductId && (
+    <div className="edit-form">
+        <h3>Editar Produto</h3>
+        <label>
+            Nome:
             <input
                 type="text"
-                placeholder="Pesquisar produto..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
+                value={editedProductData.nome}
+                onChange={(e) => setEditedProductData({ ...editedProductData, nome: e.target.value })}
             />
-            <div className="filtro-categoria">
-                <label>Filtrar por Categoria:</label>
-                <select
-                    value={selectedCategoria}
-                    onChange={handleCategoriaChange}
-                >
-                    <option value="">Todas</option>
-                    {categorias.map((categoria, index) => (
-                        <option key={index} value={categoria}>{categoria}</option>
-                    ))}
-                </select>
-            </div>
+        </label>
+        <label>
+            Categoria:
+            <input
+                type="text"
+                value={editedProductData.categoria}
+                onChange={(e) => setEditedProductData({ ...editedProductData, categoria: e.target.value })}
+            />
+        </label>
+        <label>
+            Preço:
+            <input
+                type="number"
+                value={editedProductData.preco}
+                onChange={(e) => setEditedProductData({ ...editedProductData, preco: e.target.value })}
+            />
+        </label>
+        <label>
+            Quantidade:
+            <input
+                type="number"
+                value={editedProductData.quantidade}
+                onChange={(e) => setEditedProductData({ ...editedProductData, quantidade: e.target.value })}
+            />
+        </label>
+        <label>
+            Desconto %:
+            <input
+                type="number"
+                value={editedProductData.desconto}
+                onChange={(e) => setEditedProductData({ ...editedProductData, desconto: e.target.value })}
+            />
+        </label>
+        <label>
+            Validade (dd/mm/aaaa):
+            <input
+                type="text"
+                value={editedProductData.validade}
+                onChange={(e) => setEditedProductData({ ...editedProductData, validade: e.target.value })}
+                placeholder="Ex: 30/12/2025"
+            />
+        </label>
+        <label>
+            Lote:
+            <input
+                type="text"
+                value={editedProductData.lote}
+                onChange={(e) => setEditedProductData({ ...editedProductData, lote: e.target.value })}
+            />
+        </label>
+        <label>
+            Imagem:
+            <input
+                type="file"
+                onChange={handleImageChange}
+            />
+        </label>
+        <div>
+            <button onClick={handleSaveEdit}>Salvar</button>
+            <button onClick={handleCancelEdit}>Cancelar</button>
+        </div>
+    </div>
+)}
 
 
+                {errorMessage && <p className="error-message">{errorMessage}</p>}
 
-            <table className="product-table">
-                <thead>
-                    <tr>
-                        <th>Imagem</th>
-                        <th>ID</th>
-                        <th>Nome do Produto</th>
-                        <th>Categoria</th>
-                        <th>Preço</th>
-                        <th>Estoque</th>
-                        <th>Quantidade Para Venda</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {filteredProdutos.map((produto) => {
-                        const isEstoqueBaixo = produto.quantidade < 30;
+                <div>
+                    <button onClick={handleCalcular} className="finalize-button">
+                        Calcular Total
+                    </button>
+                    {totalPrice > 0 && (
+                        <>
+                            <h2>Preço Total: R${totalPrice.toFixed(2)}</h2>
 
+<<<<<<< HEAD
                         return (
                             <tr
                                 key={produto.id}
@@ -371,51 +668,46 @@ export const Estoque = () => {
                         <button onClick={handleSaveEdit}>Salvar</button>
                         <button onClick={handleCancelEdit}>Cancelar</button>
                     </div>
+=======
+        {/* Se houver desconto, exibe o valor do desconto */}
+        {totalDesconto > 0 && (
+            <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
+        )}
+                            <button onClick={handleFinalizarCompra} className="finalize-button">
+                                Concluir Pagamento
+                            </button>
+                        </>
+                    )}
+>>>>>>> 95d79d34b427ef4bc8c36dd05e7bc902365a237b
                 </div>
-            )}
 
-            {errorMessage && <p className="error-message">{errorMessage}</p>}
+                {isLoading && (
+                    <div className="loading-overlay">
+                        <div className="loading-spinner"></div>
+                    </div>
+                )}
 
-            <div>
-                <button onClick={handleCalcular} className="finalize-button">
-                    Calcular Total
-                </button>
-                {totalPrice > 0 && (
-                    <>
-                        <h2>Preço Total: R${totalPrice.toFixed(2)}</h2>
-                        <button onClick={handleFinalizarCompra} className="finalize-button">
-                            Concluir Pagamento
-                        </button>
-                    </>
+                {showQRCode && !paymentCompleted && (
+                    <div className="qr-code-container">
+                        <div>
+                            <p>Escaneie o código para pagar</p>
+                            <img src={qrCodeImage} alt="QR Code para pagamento" width={300} />
+                            <br />
+                            {/* <button style={{ textAlign: 'center', width: '100%', marginTop: '10px' }} onClick={handlePaymentCompleted}>Confirmar Pagamento</button> */}
+                            <button style={{ textAlign: 'center', width: '100%', marginTop: '10px' }} onClick={handleConfirmarPagamento} disabled={isLoading}>
+                                Confirmar Pagamento
+                            </button>
+
+                        </div>
+                    </div>
+                )}
+
+                {paymentCompleted && (
+                    <div className="payment-success">
+                        <p>Pagamento concluído! Seus produtos foram vendidos.</p>
+                    </div>
                 )}
             </div>
-
-            {isLoading && (
-                <div className="loading-overlay">
-                    <div className="loading-spinner"></div>
-                </div>
-            )}
-
-            {showQRCode && !paymentCompleted && (
-                <div className="qr-code-container">
-                    <div>
-                        <p>Escaneie o código para pagar</p>
-                        <img src={qrCodeImage} alt="QR Code para pagamento" width={300} />
-                        <br />
-                        {/* <button style={{ textAlign: 'center', width: '100%', marginTop: '10px' }} onClick={handlePaymentCompleted}>Confirmar Pagamento</button> */}
-                        <button style={{ textAlign: 'center', width: '100%', marginTop: '10px' }} onClick={handleConfirmarPagamento} disabled={isLoading}>
-                            Confirmar Pagamento
-                        </button>
-
-                    </div>
-                </div>
-            )}
-
-            {paymentCompleted && (
-                <div className="payment-success">
-                    <p>Pagamento concluído! Seus produtos foram vendidos.</p>
-                </div>
-            )}
         </div>
     );
 };
