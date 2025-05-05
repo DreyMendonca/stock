@@ -174,10 +174,6 @@ if (erros.length > 0) {
                 data: new Date()
             });
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 95d79d34b427ef4bc8c36dd05e7bc902365a237b
             alert('Produto adicionado com sucesso!');
             setProduto({
                 nome: '',

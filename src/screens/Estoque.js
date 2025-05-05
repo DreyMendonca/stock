@@ -576,99 +576,6 @@ export const Estoque = () => {
                         <>
                             <h2>Preço Total: R${totalPrice.toFixed(2)}</h2>
 
-<<<<<<< HEAD
-                        return (
-                            <tr
-                                key={produto.id}
-                                className={isEstoqueBaixo ? 'estoque-baixo' : ''}
-                            >
-                                <td>
-                                {produto.imagem && <img style={{ width: '120px' }} src={produto.imagem} alt={produto.nome} className="product-image" />}
-                                </td>
-                                <td>{produto.id}</td>
-                                <td>{produto.nome}</td>
-                                <td>{produto.categoria}</td>
-                                <td>R$ {parseFloat(produto.preco).toFixed(2)}</td>
-                                <td>
-                                    {produto.quantidade}
-                                    {isEstoqueBaixo && (
-                                        <span className="aviso-estoque"> 🔴 Baixo estoque</span>
-                                    )}
-                                </td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        value={quantidades[produto.id] || ''}
-                                        onChange={(e) => handleQuantityChange(produto.id, e.target.value)}
-                                        min="1"
-                                    />
-                                </td>
-                                <td>
-                                <button onClick={() => handleEditClick(produto)} className="edit-button">
-                                    <i className="fa fa-pencil"></i> Editar
-                                </button>
-                                <button onClick={() => handleDelete(produto.id)} className="delete-button">
-                                    <i className="fa fa-pencil"></i> Excluir
-                                </button>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-
-            </table>
-
-            {editingProductId && (
-                <div className="edit-form">
-                    <h3>Editar Produto</h3>
-                    <label>
-                        Nome:
-                        <input
-                            type="text"
-                            value={editedProductData.nome}
-                            onChange={(e) => setEditedProductData({ ...editedProductData, nome: e.target.value })}
-                        />
-                    </label>
-                    <label>
-                        Categoria:
-                        <input
-                            type="text"
-                            value={editedProductData.categoria}
-                            onChange={(e) => setEditedProductData({ ...editedProductData, categoria: e.target.value })}
-                        />
-                    </label>
-                    <label>
-                        Preço:
-                        <input
-                            type="number"
-                            value={editedProductData.preco}
-                            onChange={(e) => setEditedProductData({ ...editedProductData, preco: e.target.value })}
-                        />
-                    </label>
-                    <label>
-                        Quantidade:
-                        <input
-                            type="number"
-                            value={editedProductData.quantidade}
-                            onChange={(e) => setEditedProductData({ ...editedProductData, quantidade: e.target.value })}
-                        />
-                        Desconto %  :
-                        <input
-                            type="number"
-                            value={editedProductData.desconto}
-                            onChange={(e) => setEditedProductData({ ...editedProductData, desconto: e.target.value })}
-                        />
-                        Imagem :
-                        <input
-                            type="file"
-                            onChange={handleImageChange}
-                        />
-                    </label>
-                    <div>
-                        <button onClick={handleSaveEdit}>Salvar</button>
-                        <button onClick={handleCancelEdit}>Cancelar</button>
-                    </div>
-=======
         {/* Se houver desconto, exibe o valor do desconto */}
         {totalDesconto > 0 && (
             <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
@@ -678,7 +585,7 @@ export const Estoque = () => {
                             </button>
                         </>
                     )}
->>>>>>> 95d79d34b427ef4bc8c36dd05e7bc902365a237b
+
                 </div>
 
                 {isLoading && (
