@@ -229,8 +229,63 @@ export const AdicionarProduto = () => {
 
             <div className="product-form-container">
                 <div className="form-section">
+                  
                     <div className="form-header">
+                    <div className='add_start'>
+                    <div className='add_name'>
                         <h2>Adicionar Produto</h2>
+                        <div className='image-selection'>
+                            <div className="upload-section" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <label htmlFor="file-upload" className="upload-label"></label>
+                                <input id="file-upload" type="file" onChange={handleImageChange} />
+
+                                {preview && (
+                                    <img
+                                        src={preview}
+                                        alt="Prévia da imagem"
+                                        style={{
+                                            width: '80px',
+                                            height: '80px',
+                                            objectFit: 'cover',
+                                            borderRadius: '8px',
+                                            border: '1px solid #ccc',
+                                            boxShadow: '0 0 5px rgba(0,0,0,0.2)',
+                                            cursor: 'pointer'
+                                        }}
+                                        onClick={handleImageClick}
+                                    />
+                                )}
+                                {isZoomed && (
+                                    <div
+                                        style={{
+                                            position: 'fixed',
+                                            top: 0,
+                                            left: 0,
+                                            right: 0,
+                                            bottom: 0,
+                                            backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
+                                            zIndex: 1000,
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            cursor: 'zoom-out',
+                                        }}
+                                        onClick={handleImageClick}  // Fecha o zoom ao clicar na área
+                                    >
+                                        <img
+                                            src={preview}
+                                            alt={produto.nome}
+                                            style={{
+                                                maxWidth: '90%',
+                                                maxHeight: '90%',
+                                                objectFit: 'contain',
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            </div>
+                            </div>
                         <div className="form-row">
                             <div className="form-group">
                                 <label>Nome do Produto</label>
@@ -297,7 +352,8 @@ export const AdicionarProduto = () => {
                                 </p>
                             )}
                         </div>
-
+                        </div>
+                            
 
                         <div className="form-row">
                             <div className="form-group">
@@ -376,55 +432,7 @@ export const AdicionarProduto = () => {
                             </div>
                         </div>
                         <div className='btn-group'>
-                            <div className="upload-section" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <label htmlFor="file-upload" className="upload-label">Escolher Arquivo</label>
-                                <input id="file-upload" type="file" onChange={handleImageChange} />
-
-                                {preview && (
-                                    <img
-                                        src={preview}
-                                        alt="Prévia da imagem"
-                                        style={{
-                                            width: '80px',
-                                            height: '80px',
-                                            objectFit: 'cover',
-                                            borderRadius: '8px',
-                                            border: '1px solid #ccc',
-                                            boxShadow: '0 0 5px rgba(0,0,0,0.2)',
-                                            cursor: 'pointer'
-                                        }}
-                                        onClick={handleImageClick}
-                                    />
-                                )}
-                                {isZoomed && (
-                                    <div
-                                        style={{
-                                            position: 'fixed',
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
-                                            zIndex: 1000,
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            cursor: 'zoom-out',
-                                        }}
-                                        onClick={handleImageClick}  // Fecha o zoom ao clicar na área
-                                    >
-                                        <img
-                                            src={preview}
-                                            alt={produto.nome}
-                                            style={{
-                                                maxWidth: '90%',
-                                                maxHeight: '90%',
-                                                objectFit: 'contain',
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                      
 
                             <div className='btn-header'>
                                 <button

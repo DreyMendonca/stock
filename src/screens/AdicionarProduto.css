@@ -1,202 +1,118 @@
-
-
-.menu-item {
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.product-form-container {
+.container-default.centralizado {
     display: flex;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    height: 100vh;
-  
-}
-
-.form-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: 1%;
-    padding: 1%;
     flex-direction: column;
-    width: 70%;
-    height: 45vh;
-    border-radius: 0.8em;
+    align-items: center;
+    padding: 2rem;
 }
 
-.form-section {
-    flex: 1 1;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-}
-
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
+.titulo-principal {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
     font-weight: bold;
 }
 
-.btn-group {
-    display: flex;
-    width: 90%;
-    align-items: center;
-    justify-content: space-between;
-    padding: .6%;
-    gap: 1%;
-}
+.image-selection{
 
-.btn-header {
+}
+.add_start{
     display: flex;
     flex-direction: row;
-    align-items: center;
-    gap: 15px;
+}
+.form-header{
+ display: flex;
+ flex-direction: column;
+}
+
+.add_main {
+    display: flex;
+    flex-direction: column;
+}
+
+.layout-principal {
+    display: flex;
+    gap: 2rem;
     flex-wrap: wrap;
-    justify-content: space-between;
-    width: 35%;
-}
-
-.criar-categoria-btn {
-    color: #141414 !important;
-    padding: 4% !important;
-    font-weight: bolder !important;
-    font-size: 15px !important;
-    background-color: #3ac73a !important;
-}
-
-.criar-categoria-btn:hover {
-    background-color: #323333 !important;
-    color: #f1f1f1 !important;
-    transition: ease-in-out 0.6s;
-}
-
-.add-product-btn {
-    color: #141414 !important;
-    font-weight: bolder !important;
-    font-size: 15px !important;
-    background-color: #3577da !important;
-    padding: 4% !important;
-}
-
-.add-product-btn:hover {
-    background-color: #323333 !important;
-    color: #f1f1f1 !important;
-    transition: ease-in-out 0.6s;
-}
-
-.upload-section {
-    display: flex;
-    align-items: center;
-    margin-right: 20px;
-}
-
-.upload-label {
-    background-color: #c4c4c4;
-    color: rgb(22, 22, 22);
-    padding: 10px 20px;
-    border-radius: 10px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: ease-in-out 0.3s;
-}
-
-.upload-label:hover {
-    background-color: #3d3e3f;
-    color: white;
-}
-
-.upload-section input[type="file"] {
-    display: none;
-}
-.form-group select {
+    justify-content: center;
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    box-sizing: border-box;
-    background-color: white;
-    color: #000000;
-    height: 5.6vh;
-}
-.nova-categoria {
-    margin-top: 10px;
-    width: 90%;
+    max-width: 1200px;
 }
 
-.nova-cat-row {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.nova-cat-row input[type="text"] {
-    flex: 1;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    font-size: 14px;
-    background-color: white;
-    color: #000;
-}
-
-.nova-cat-row .add-cat {
-    background-color: #3ac73a;
-    color: #141414;
-    font-weight: bold;
-    font-size: 14px;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.3s ease-in-out;
-}
-
-.nova-cat-row .add-cat:hover {
-    background-color: #323333;
-    color: #f1f1f1;
-}
-
-/* .add-product-btn input[type="text"],
-input[type="number"],
-select,
-textarea {
-    width: 100%;
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-} */
-
-textarea {
-    height: 60px;
+.card {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    flex: 1 1 400px;
+    max-width: 550px;
 }
 
 .form-row {
     display: flex;
-    gap: 15px;
-    width: 90%;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
-.variant-group {
+.form-group {
     display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    flex: 1;
 }
 
-.add-variant-button {
-    padding: 10px;
-    background-color: #ddd;
-    border: none;
-    border-radius: 5px;
+input, select {
+    padding: 0.6rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.preview-imagem {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 0.5rem;
     cursor: pointer;
-    font-size: 18px;
+    margin-top: 1rem;
+    border: 1px solid #ccc;
 }
 
+.zoom-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.zoom-imagem {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.btn {
+    padding: 0.7rem 1.2rem;
+    margin-top: 1rem;
+    border: none;
+    border-radius: 8px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn:hover {
+    background-color: #3e8e41;
+}
+
+.nova-cat-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.lucro-label {
+    margin-top: -0.5rem;
+    font-size: 0.9rem;
+    color: green;
+}
