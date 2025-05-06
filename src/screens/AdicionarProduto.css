@@ -164,7 +164,7 @@
     color: #f1f1f1;
 }
 
-.add-product-btn input[type="text"],
+/* .add-product-btn input[type="text"],
 input[type="number"],
 select,
 textarea {
@@ -173,7 +173,7 @@ textarea {
     border-radius: 5px;
     border: 1px solid #ccc;
     box-sizing: border-box;
-}
+} */
 
 textarea {
     height: 60px;
