@@ -319,7 +319,7 @@ export const Estoque = () => {
   if (!user) return null;
 
   return (
-    <div className="base_header">
+    <div className="container-default">
       <aside className="sidebar">
         {/* Sidebar conteúdo */}
         <a href="/home">
