@@ -1,4 +1,15 @@
-
+.sidebar-container {
+  background-color: #fff;
+  border-right: 1px solid #eee;
+  height: 100vh;
+  position: fixed; /* Usar fixed para ela ficar fixa ao rolar */
+  top: 0;
+  left: 0;
+  width: 250px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
 
 .sidebar-header {
   display: flex;
@@ -13,16 +24,9 @@
   object-fit: contain;
 }
 
-.sidebar-container {
-  background-color: #fff; 
-  border-right: 1px solid #eee;
-  height: 100vh;
-}
-
 .sidebar-menu {
   padding: 10px 0;
 }
-
 
 .pro-menu-item a {
   text-decoration: none;

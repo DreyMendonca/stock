@@ -10,6 +10,7 @@ import CadastroUsuarioComum from './screens/CadastroUsuarioComum';
 import AdminRoute from './components/AdminRoute';
 import MainLayout from './screens/MainLayout';
 
+
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -18,15 +19,11 @@ function App() {
     <>
       <Router>
         <Routes>
-
-          {/* Redirecionamento da raiz */}
           <Route path="/" element={<Navigate to="/Login" />} />
-
-          {/* Rotas públicas, sem sidebar */}
           <Route path="/Login" element={<Login />} />
           <Route path="/Cadastro" element={<Cadastro />} />
-
-          {/* Rotas privadas com Sidebar dentro de MainLayout */}
+          
+          {/* Rota privada */}
           <Route
             path="/home"
             element={
@@ -61,7 +58,6 @@ function App() {
               </AdminRoute>
             }
           />
-
         </Routes>
       </Router>
 

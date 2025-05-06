@@ -4,14 +4,7 @@ import { collection, addDoc, getDocs } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useNavigate } from 'react-router-dom';
 import './AdicionarProduto.css';
-import IconeEstoque from '../icones/iconeEstoque.jpeg';
-import IconeAdd from '../icones/iconeAdd.jpeg';
-import Logo from '../images/logoSemFundo.png';
-import LogoSide from '../images/logoSide.png';
-import EstoqueSide from '../images/estoque.png';
-import AddSide from '../images/botao-adicionar.png';
-import FuncionarioSide from '../images/equipe.png';
-import Logout from '../images/logout.png';
+
 
 
 export const AdicionarProduto = () => {

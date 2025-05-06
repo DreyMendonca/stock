@@ -1,0 +1,43 @@
+.header {
+  width: 100%;
+  padding: 16px 24px;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.header__left {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+  flex: 1;
+}
+
+.header__center {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+}
+
+.filter-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 10px 16px;
+  border: 1px solid #ccc;
+  border-radius: 25px;
+  font-size: 1rem;
+}
+
+.header__right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+}
