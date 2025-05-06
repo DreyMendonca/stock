@@ -31,16 +31,9 @@ const Header = () => {
   return (
     <header className="header">
       <div className="header__left">
-        {nomeUsuario ? `Bem-vindo(a), ${nomeUsuario}` : 'Carregando...'}
+        {nomeUsuario ? `Bem-vindo(a), ${nomeUsuario}!`  : 'Carregando...'}
       </div>
 
-      <div className="header__center">
-        <input
-          type="text"
-          className="filter-input"
-          placeholder="Filtrar..."
-        />
-      </div>
 
       <div className="header__right">
         <img

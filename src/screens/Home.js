@@ -418,10 +418,7 @@ export const Home = () => {
                         <p>{calcularTotalVendas()} itens vendidos</p>
                     </div>
 
-                    <div className="user-profile">
-                        <span>{nomeUsuario || 'Usuário'}</span>
-                        <i className="fas fa-user-circle"></i>
-                    </div>
+                    
                 </header>
 
                 <section className="dashboard-details">

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
-import { FaHome, FaBox, FaPlus, FaUser, FaSignOutAlt, FaSearch } from 'react-icons/fa';
+import { FaHome, FaBox, FaPlus, FaUser, FaSignOutAlt } from 'react-icons/fa';
 import './Sidebar.css';
 import logoFull from "../images/LogoEstocaAi.svg";
-import logoMini from "../images/logoSide.png"; 
+import logoMini from "../images/logoSide.png";
 
 const MySidebar = ({ handleLogout }) => {
   const [collapsed, setCollapsed] = useState(true);
@@ -25,20 +25,44 @@ const MySidebar = ({ handleLogout }) => {
       </div>
 
       <Menu iconShape="circle" className="sidebar-menu">
-        <MenuItem icon={<FaHome />} className="pro-menu-item active">
-          <a href="/home">Dashboard</a>
+        <MenuItem
+          icon={<FaHome />}
+          className="pro-menu-item"
+          component={<a href="/home" />}
+        >
+          Dashboard
         </MenuItem>
-        <MenuItem icon={<FaPlus />} className="pro-menu-item">
-          <a href="/adicionarproduto">Adicionar Produto</a>
+
+        <MenuItem
+          icon={<FaPlus />}
+          className="pro-menu-item"
+          component={<a href="/adicionarproduto" />}
+        >
+          Adicionar Produto
         </MenuItem>
-        <MenuItem icon={<FaBox />} className="pro-menu-item">
-          <a href="/estoque">Visualizar Estoque</a>
+
+        <MenuItem
+          icon={<FaBox />}
+          className="pro-menu-item"
+          component={<a href="/estoque" />}
+        >
+          Visualizar Estoque
         </MenuItem>
-        <MenuItem icon={<FaUser />} className="pro-menu-item">
-          <a href="/cadastro-usuario">Funcionário</a>
+
+        <MenuItem
+          icon={<FaUser />}
+          className="pro-menu-item"
+          component={<a href="/cadastro-usuario" />}
+        >
+          Funcionário
         </MenuItem>
-        <MenuItem icon={<FaSignOutAlt />} className="pro-menu-item">
-          <span onClick={handleLogout} style={{ cursor: 'pointer' }}>Sair</span>
+
+        <MenuItem
+          icon={<FaSignOutAlt />}
+          className="pro-menu-item"
+          onClick={handleLogout}
+        >
+          Sair
         </MenuItem>
       </Menu>
     </Sidebar>

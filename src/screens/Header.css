@@ -1,17 +1,18 @@
 .header {
   width: 100%;
-  padding: 16px 24px;
+  padding: 20px 26px;
   background-color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
 }
 
 .header__left {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #333;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #0b4983;
+  
   flex: 1;
 }
 
@@ -21,14 +22,7 @@
   justify-content: center;
 }
 
-.filter-input {
-  width: 100%;
-  max-width: 400px;
-  padding: 10px 16px;
-  border: 1px solid #ccc;
-  border-radius: 25px;
-  font-size: 1rem;
-}
+
 
 .header__right {
   flex: 1;
@@ -37,7 +31,7 @@
 }
 
 .user-icon {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
 }

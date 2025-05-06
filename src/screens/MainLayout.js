@@ -23,7 +23,7 @@ const MainLayout = ({ children }) => {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         <Header />
-        <main style={{ padding: '20px', overflowY: 'auto', marginTop: '80px' }}>
+        <main style={{ padding: '20px', overflowY: 'auto' }}>
           {children}
         </main>
       </div>

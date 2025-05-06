@@ -16,13 +16,13 @@
 .dashboard-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
+    align-items: top;
+
+  
 }
 
 .summary-cards {
     display: flex;
- 
     gap: 20px;
     margin-bottom: 20px;
 }
