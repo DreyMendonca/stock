@@ -1,12 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+
 import Home from './screens/Home';
 import AdicionarProduto from './screens/AdicionarProduto';
 import Cadastro from './screens/Cadastro';
 import Login from './screens/Login';
 import Estoque from './screens/Estoque';
-import CadastroUsuarioComum from './screens/CadastroUsuarioComum'; // Novo componente
-import AdminRoute from './components/AdminRoute'; // Componente de rota protegida
+import CadastroUsuarioComum from './screens/CadastroUsuarioComum';
+import AdminRoute from './components/AdminRoute';
+import MainLayout from './screens/MainLayout';
+
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -15,22 +18,54 @@ function App() {
     <>
       <Router>
         <Routes>
-          {/* Redireciona '/' para '/Login' */}
+
+          {/* Redirecionamento da raiz */}
           <Route path="/" element={<Navigate to="/Login" />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/AdicionarProduto" element={<AdicionarProduto />} />
-          <Route path="/Cadastro" element={<Cadastro />} />
+
+          {/* Rotas públicas, sem sidebar */}
           <Route path="/Login" element={<Login />} />
-          <Route path="/Estoque" element={<Estoque />} />
-          
-          {/* Nova rota protegida para cadastro de usuários comuns */}
-          <Route path="/cadastro-usuario" element={
-            <AdminRoute>
-              <CadastroUsuarioComum />
-            </AdminRoute>
-          } />
+          <Route path="/Cadastro" element={<Cadastro />} />
+
+          {/* Rotas privadas com Sidebar dentro de MainLayout */}
+          <Route
+            path="/home"
+            element={
+              <MainLayout>
+                <Home />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/AdicionarProduto"
+            element={
+              <MainLayout>
+                <AdicionarProduto />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/Estoque"
+            element={
+              <MainLayout>
+                <Estoque />
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/cadastro-usuario"
+            element={
+              <AdminRoute>
+                <MainLayout>
+                  <CadastroUsuarioComum />
+                </MainLayout>
+              </AdminRoute>
+            }
+          />
+
         </Routes>
       </Router>
+
+      {/* Toast para notificações */}
       <ToastContainer
         position="top-right"
         autoClose={3000}

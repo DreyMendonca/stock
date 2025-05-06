@@ -411,33 +411,7 @@ export const Home = () => {
 
     return (
         <div className="dashboard-container">
-            <aside className="sidebar">
-                {/* Sidebar conteúdo */}
-                <a href='/home'>
-                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
-                    <span>Estocaí</span>
-                </a>
-                
-                <a href='/estoque'>                
-                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Estoque</span>
-                </a>
-
-                <a href='/adicionarproduto'>               
-                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Adicionar</span>
-                </a>
-
-                <a href='/cadastro-usuario'>               
-                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Funcionário</span>
-                </a>
-
-                <a href='#' onClick={handleLogout}>               
-                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Sair</span>
-                </a>
-            </aside>
+          
 
             <main className="dashboard-main">
                 <header className="dashboard-header">
