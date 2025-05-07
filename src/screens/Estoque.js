@@ -668,7 +668,7 @@ export const Estoque = () => {
               <p>Escaneie o código para pagar</p>
               <img src={qrCodeImage} alt="QR Code para pagamento" width={300} />
               <br />
-              <button
+              <button className="btn"
                 style={{
                   textAlign: "center",
                   width: "100%",

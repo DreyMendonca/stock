@@ -1,37 +1,3 @@
-.sidebar {
-    width: 80px;
-    /* background-color: #4a148c; */
-    /* Cor roxa da barra lateral */
-    color: white;
-    display: absolute;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px 0;
-}
-
-.sidebar-icon {
-    font-size: 24px;
-    margin-bottom: 20px;
-}
-
-.sidebar-menu {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-.menu-item {
-    font-size: 24px;
-    cursor: pointer;
-}
-
-.menu-item.active {
-    background-color: #0b4983;
-    /* Destaque para o item ativo */
-    border-radius: 50%;
-    padding: 10px;
-}
-
 .container-default {
     display: flex;
     flex-direction: flex;
@@ -247,3 +213,92 @@
         padding: .8%;
     }
 }
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #ccc;
+    border-top: 5px solid #333;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.error-message {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.qr-code-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.851);
+    z-index: 1000;
+}
+
+.qr-code-image {
+    max-width: 90%;
+    max-height: 90%;
+}
+
+.payment-complete-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    margin-top: 20px;
+    display: block;
+    width: 200px;
+    margin: 0 auto;
+}
+
+.payment-complete-button:hover {
+    background-color: #45a049;
+}
+
+.qr-code-container p {
+    text-align: center;
+    font-size: 1.2rem;
+    color: green;
+}
+.product-image {
+    max-width: 100px;
+    height: auto;
+}
+.qr-code-container div button {
+    background-color: #1a7e31;
+  }
+  .qr-code-container div button:hover{
+    background-color: #0c3b17;
+  }
+  
+  
