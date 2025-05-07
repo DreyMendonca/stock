@@ -21,7 +21,7 @@ const MainLayout = ({ children }) => {
     <div style={{ display: 'flex', height: '100vh' }}>
       <MySidebar handleLogout={handleLogout} />
 
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: '100%' }}>
         <Header />
         <main style={{ padding: '20px', overflowY: 'auto' }}>
           {children}

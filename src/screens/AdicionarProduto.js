@@ -224,251 +224,253 @@ export const AdicionarProduto = () => {
 
 
     return (
-        <div className="container-default">
-          
-
-            <div className="product-form-container">
-                <div className="form-section">
-                  
-                    <div className="form-header">
-                    <div className='add_start'>
-                    <div className='add_name'>
-                        <h2>Adicionar Produto</h2>
-                        <div className='image-selection'>
-                            <div className="upload-section" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                                <label htmlFor="file-upload" className="upload-label"></label>
-                                <input id="file-upload" type="file" onChange={handleImageChange} />
-
-                                {preview && (
-                                    <img
-                                        src={preview}
-                                        alt="Prévia da imagem"
-                                        style={{
-                                            width: '80px',
-                                            height: '80px',
-                                            objectFit: 'cover',
-                                            borderRadius: '8px',
-                                            border: '1px solid #ccc',
-                                            boxShadow: '0 0 5px rgba(0,0,0,0.2)',
-                                            cursor: 'pointer'
-                                        }}
-                                        onClick={handleImageClick}
-                                    />
-                                )}
-                                {isZoomed && (
-                                    <div
-                                        style={{
-                                            position: 'fixed',
-                                            top: 0,
-                                            left: 0,
-                                            right: 0,
-                                            bottom: 0,
-                                            backgroundColor: 'rgba(0, 0, 0, 0.7)',  // Fundo escurecido
-                                            zIndex: 1000,
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            cursor: 'zoom-out',
-                                        }}
-                                        onClick={handleImageClick}  // Fecha o zoom ao clicar na área
-                                    >
-                                        <img
-                                            src={preview}
-                                            alt={produto.nome}
-                                            style={{
-                                                maxWidth: '90%',
-                                                maxHeight: '90%',
-                                                objectFit: 'contain',
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
-                            </div>
-                            </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Nome do Produto</label>
-                                <input
-                                    type="text"
-                                    name="nome"
-                                    value={produto.nome}
-                                    onChange={handleChange}
-                                    placeholder="Nome do Produto"
-                                    required
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Preço: R$</label>
-                                <input
-                                    type="text"
-                                    name="preco"
-                                    value={produto.preco}
-                                    onChange={(e) => {
-                                        let valor = e.target.value;
-
-                                        // Remove tudo que não for número
-                                        valor = valor.replace(/\D/g, '');
-
-                                        // Transforma em centavos e formata com vírgula
-                                        valor = (parseFloat(valor) / 100).toFixed(2);
-
-                                        // Troca o ponto por vírgula (estilo BR)
-                                        valor = valor.replace('.', ',');
-
-                                        setProduto({ ...produto, preco: valor });
-                                    }}
-                                    required
-                                />
-
-                            </div>
-                        
-
-                        <div className="form-group">
-                            <label>Preço de Custo: R$</label>
-                            <input
-                                type="text"
-                                name="precoCusto"
-                                value={produto.precoCusto}
-                                onChange={(e) => {
-                                    let valor = e.target.value;
-                                    valor = valor.replace(/\D/g, '');
-                                    valor = (parseFloat(valor) / 100).toFixed(2);
-                                    valor = valor.replace('.', ',');
-                                    setProduto({ ...produto, precoCusto: valor });
-                                }}
-                                required
-                            />
-                        </div>
-                            {produto.preco && produto.precoCusto && (
-                                <p style={{ marginTop: '5px', color: 'green' }}>
-                                    Lucro estimado: R$
-                                    {(() => {
-                                        const precoVenda = parseFloat(produto.preco.replace(',', '.'));
-                                        const precoCusto = parseFloat(produto.precoCusto.replace(',', '.'));
-                                        const lucro = precoVenda - precoCusto;
-                                        return lucro.toFixed(2).replace('.', ',');
-                                    })()}
-                                </p>
-                            )}
-                        </div>
-                        </div>
-                            
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Desconto: %</label>
-                                <input
-                                    type="text"
-                                    name="desconto"
-                                    value={produto.desconto}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Quantidade</label>
-                                <input
-                                    type="number"
-                                    name="quantidade"
-                                    value={produto.quantidade}
-                                    onChange={handleChange}
-                                    style={{
-                                        MozAppearance: 'textfield',
-                                        WebkitAppearance: 'none',
-                                        margin: 0
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>Validade</label>
-                                <input
-                                    type="date"
-                                    name="validade"
-                                    value={produto.validade}
-                                    onChange={handleChange}
-                                    min={getMinValidade()} // <-- ainda formato ISO
-                                    required
-                                />
-
-                            </div>
-
-                            <div className="form-group">
-                                <label>Lote</label>
-                                <input
-                                    type="text"
-                                    name="lote"
-                                    value={produto.lote}
-                                    onChange={handleChange}
-                                    placeholder="Código do lote"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label>SKU (Opcional)</label>
-                                <input
-                                    type="text"
-                                    name="sku"
-                                    value={produto.sku}
-                                    onChange={handleChange}
-                                />
-                            </div>
-                            <div className="form-group">
-                                <label>Categoria</label>
-                                <select
-                                    className='select-cat'
-                                    name="categoria"
-                                    value={produto.categoria}
-                                    onChange={handleChange}
-                                >
-                                    <option value="">Selecione uma categoria</option>
-                                    {categorias.map((cat, index) => (
-                                        <option key={index} value={cat}>{cat}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                        <div className='btn-group'>
-                      
-
-                            <div className='btn-header'>
-                                <button
-                                    className="btn criar-categoria-btn"
-                                    onClick={() => setMostrarCriarCategoria(true)}
-                                >
-                                    Criar nova categoria
-                                </button>
-
-                                {mostrarCriarCategoria && (
-                                    <div className="form-group nova-categoria">
-                                        <label>Nova Categoria</label>
-                                        <div className="nova-cat-row">
-                                            <input
-                                                type="text"
-                                                value={novaCategoria}
-                                                onChange={(e) => setNovaCategoria(e.target.value)}
-                                                placeholder="Nome da nova categoria"
-                                            />
-                                            <button className="btn add-cat" onClick={handleAdicionarCategoria}>
-                                                Adicionar
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <button className="btn add-product-btn" onClick={handleAddProduto}>
-                                    Adicionar Produto
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
+      <div className="form-section">
+        <div className="add_name">
+          <h2>Adicionar Produto</h2>
         </div>
+
+        <div className="form-header">
+          <div className="form-row">
+            <div className="form-group">
+              <label>Nome do Produto</label>
+              <input
+                type="text"
+                name="nome"
+                value={produto.nome}
+                onChange={handleChange}
+                placeholder="Nome do Produto"
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Preço: R$</label>
+              <input
+                type="text"
+                name="preco"
+                value={produto.preco}
+                onChange={(e) => {
+                  let valor = e.target.value;
+
+                  // Remove tudo que não for número
+                  valor = valor.replace(/\D/g, "");
+
+                  // Transforma em centavos e formata com vírgula
+                  valor = (parseFloat(valor) / 100).toFixed(2);
+
+                  // Troca o ponto por vírgula (estilo BR)
+                  valor = valor.replace(".", ",");
+
+                  setProduto({ ...produto, preco: valor });
+                }}
+                required
+              />
+            </div>
+
+            <div className="form-group">
+              <label>Preço de Custo: R$</label>
+              <input
+                type="text"
+                name="precoCusto"
+                value={produto.precoCusto}
+                onChange={(e) => {
+                  let valor = e.target.value;
+                  valor = valor.replace(/\D/g, "");
+                  valor = (parseFloat(valor) / 100).toFixed(2);
+                  valor = valor.replace(".", ",");
+                  setProduto({ ...produto, precoCusto: valor });
+                }}
+                required
+              />
+            </div>
+            {produto.preco && produto.precoCusto && (
+              <p style={{ marginTop: "5px", color: "green" }}>
+                Lucro estimado: R$
+                {(() => {
+                  const precoVenda = parseFloat(
+                    produto.preco.replace(",", ".")
+                  );
+                  const precoCusto = parseFloat(
+                    produto.precoCusto.replace(",", ".")
+                  );
+                  const lucro = precoVenda - precoCusto;
+                  return lucro.toFixed(2).replace(".", ",");
+                })()}
+              </p>
+            )}
+            <div className="form-group">
+              <label>Desconto: %</label>
+              <input
+                type="text"
+                name="desconto"
+                value={produto.desconto}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label>Quantidade</label>
+              <input
+                type="number"
+                name="quantidade"
+                value={produto.quantidade}
+                onChange={handleChange}
+                style={{
+                  MozAppearance: "textfield",
+                  WebkitAppearance: "none",
+                  margin: 0,
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Validade</label>
+              <input
+                type="date"
+                name="validade"
+                value={produto.validade}
+                onChange={handleChange}
+                min={getMinValidade()} // <-- ainda formato ISO
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Lote</label>
+              <input
+                type="text"
+                name="lote"
+                value={produto.lote}
+                onChange={handleChange}
+                placeholder="Código do lote"
+              />
+            </div>
+            <div className="form-group">
+              <label>SKU (Opcional)</label>
+              <input
+                type="text"
+                name="sku"
+                value={produto.sku}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-group">
+              <label>Categoria</label>
+              <select
+                className="select-cat"
+                name="categoria"
+                value={produto.categoria}
+                onChange={handleChange}
+              >
+                <option value="">Selecione uma categoria</option>
+                {categorias.map((cat, index) => (
+                  <option key={index} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <div className="image-selection">
+                <div
+                  className="upload-section"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <label htmlFor="file-upload" className="upload-label"></label>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    onChange={handleImageChange}
+                  />
+
+                  {preview && (
+                    <img
+                      src={preview}
+                      alt="Prévia da imagem"
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "1px solid #ccc",
+                        boxShadow: "0 0 5px rgba(0,0,0,0.2)",
+                        cursor: "pointer",
+                      }}
+                      onClick={handleImageClick}
+                    />
+                  )}
+                  {isZoomed && (
+                    <div
+                      style={{
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: "rgba(0, 0, 0, 0.7)", // Fundo escurecido
+                        zIndex: 1000,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        cursor: "zoom-out",
+                      }}
+                      onClick={handleImageClick} // Fecha o zoom ao clicar na área
+                    >
+                      <img
+                        src={preview}
+                        alt={produto.nome}
+                        style={{
+                          maxWidth: "90%",
+                          maxHeight: "90%",
+                          objectFit: "contain",
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="btn-group">
+          <div id="btn-header">
+            <button
+              className="btn criar-categoria-btn"
+              onClick={() => setMostrarCriarCategoria(true)}
+            >
+              Criar nova categoria
+            </button>
+
+            {mostrarCriarCategoria && (
+              <div className="form-group nova-categoria">
+                <label>Nova Categoria</label>
+                <div className="nova-cat-row">
+                  <input
+                    type="text"
+                    value={novaCategoria}
+                    onChange={(e) => setNovaCategoria(e.target.value)}
+                    placeholder="Nome da nova categoria"
+                  />
+                  <button
+                    className="btn add-cat"
+                    onClick={handleAdicionarCategoria}
+                  >
+                    Adicionar
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <button className="btn add-product-btn" onClick={handleAddProduto}>
+              Adicionar Produto
+            </button>
+          </div>
+        </div>
+      </div>
     );
 };
 

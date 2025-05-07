@@ -1,18 +1,9 @@
-.container-default.centralizado {
+.form-section{
+    width: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 2rem;
-}
-
-.titulo-principal {
-    font-size: 2rem;
-    margin-bottom: 1.5rem;
-    font-weight: bold;
-}
-
-.image-selection{
-
+    gap: 1rem;
+    margin-bottom: 2rem;
 }
 .add_start{
     display: flex;
@@ -20,7 +11,7 @@
 }
 .form-header{
  display: flex;
- flex-direction: column;
+ flex-direction: row;
 }
 
 .add_main {
@@ -50,6 +41,9 @@
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+    flex-direction: column;
+    width: 100%;
+    align-content: center;
 }
 
 .form-group {
@@ -89,20 +83,31 @@ input, select {
     max-width: 90%;
     max-height: 90%;
 }
+#file-upload{
+    width: 100%;
 
+}
 .btn {
     padding: 0.7rem 1.2rem;
     margin-top: 1rem;
     border: none;
     border-radius: 8px;
-    background-color: #4CAF50;
     color: white;
     cursor: pointer;
     font-weight: bold;
 }
 
-.btn:hover {
-    background-color: #3e8e41;
+#btn-header button:nth-child(1){
+    background-color: #4CAF50;
+}
+#btn-header button:nth-child(2){
+    background-color: #354ea0;
+}
+#btn-header button:nth-child(1):hover {
+    background-color: #1d471f;
+}
+#btn-header button:nth-child(2):hover {
+    background-color: #152042;
 }
 
 .nova-cat-row {
@@ -115,4 +120,9 @@ input, select {
     margin-top: -0.5rem;
     font-size: 0.9rem;
     color: green;
+}
+@media (max-width: 500px) {
+    .form-header {
+        flex-direction: column;
+    }
 }
