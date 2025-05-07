@@ -17,52 +17,5 @@ code {
 }
 
 
-.container-default {
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-}
 
-.container-default .product-form-container {
-  width: 100%;
-  background-color: #ffffff;
-  box-shadow: none;
-  padding: 1rem;
-  
-}
 
-.container-default .estoque-container {
-  width: 100%;
-  background-color: #ffffff;
-  box-shadow: none;
-  padding: 1rem;
-  min-height: 100vh;
-}
-
-.estoque-search input {
-  width: 100%;
-}
-
-.container-usercomum {
-  width: 100%;
-  background-color: #ffffff;
-  padding: 1rem;
-  min-height: 100vh;
-}
-
-.container-usercomum .form-group {
-  width: 100%;
-}
-
-.container-usercomum button.register {
-  background-color: #093d66;
-  color: #ffffff;
-  padding: 15px 25px;
-  border: none;
-  border-radius: 10px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  width: 100%;
-  max-width: 300px;
-}

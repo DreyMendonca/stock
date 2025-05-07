@@ -322,7 +322,6 @@ export const Estoque = () => {
 
   return (
     <div className="container-default">
-   
 
       <div className="filter_header">
         <h1>Estoque</h1>
