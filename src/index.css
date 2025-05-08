@@ -200,6 +200,11 @@ button.button-del:hover {
   background-color: #66040e;
 }
 
+.action-buttons {
+  flex-direction: row !important;
+  gap: 5px;
+}
+
 @media (max-width: 1000px) {
   .header__right {
     display: none !important;
