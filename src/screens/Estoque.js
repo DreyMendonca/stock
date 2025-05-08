@@ -8,6 +8,8 @@ import {
   updateDoc,
   doc,
   addDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import "./Estoque.css";
@@ -44,14 +46,94 @@ export const Estoque = () => {
   const [totalLucro, setTotalLucro] = useState(0);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        fetchProdutos(currentUser.uid);
+        // Ao invés de passar currentUser.uid diretamente, vamos buscar o usuário no Firestore
+        // para acessar o parentUid e determinar como buscar os produtos.
+        const userDoc = await getDocs(query(collection(db, 'usuarios'), where('uid', '==', currentUser.uid)));
+        if (!userDoc.empty) {
+          const userData = userDoc.docs[0].data();
+          fetchProdutos(currentUser.uid); // Passamos o UID do usuário logado para a função fetchProdutos
+        } else {
+          console.error("Informações do usuário não encontradas.");
+        }
+      } else {
+        setUser(null);
+        setProdutos([]);
       }
     });
     return () => unsubscribe();
   }, []);
+
+  const fetchProdutos = async (uid) => {
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const userDoc = await getDocs(query(collection(db, 'usuarios'), where('uid', '==', uid)));
+      if (!userDoc.empty) {
+        const userData = userDoc.docs[0].data();
+        let produtosQuery;
+
+        if (userData.parentUid === null) {
+          // Usuário é um administrador, busca produtos pelo próprio UID
+          produtosQuery = query(collection(db, "produtos"), where("userId", "==", uid));
+        } else {
+          // Usuário é comum, busca produtos pelo parentUid (UID do admin que o criou)
+          produtosQuery = query(collection(db, "produtos"), where("userId", "==", userData.parentUid));
+        }
+
+        const querySnapshot = await getDocs(produtosQuery);
+        const produtosArray = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setProdutos(produtosArray);
+      } else {
+        setErrorMessage("Erro ao buscar informações do usuário.");
+        setProdutos([]);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      setErrorMessage("Erro ao buscar produtos.");
+      setProdutos([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      if (!user) return;
+      try {
+        const userDoc = await getDocs(query(collection(db, 'usuarios'), where('uid', '==', user.uid)));
+        if (!userDoc.empty) {
+          const userData = userDoc.docs[0].data();
+          let categoriasQuery;
+
+          if (userData.parentUid === null) {
+            // Usuário é um administrador, busca categorias pelo próprio UID
+            categoriasQuery = query(collection(db, "categorias"), where("userId", "==", user.uid));
+          } else {
+            // Usuário é comum, busca categorias pelo parentUid (UID do admin que o criou)
+            categoriasQuery = query(collection(db, "categorias"), where("userId", "==", userData.parentUid));
+          }
+
+          const snapshot = await getDocs(categoriasQuery);
+          const categoriasFiltradas = snapshot.docs.map((doc) => doc.data().nome);
+          setCategorias(categoriasFiltradas);
+        } else {
+          console.error("Informações do usuário não encontradas ao buscar categorias.");
+          setCategorias([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar categorias:", error);
+        setCategorias([]);
+      }
+    };
+    fetchCategorias();
+  }, [user]);
+
+  const handleImageClick = () => {
+    setIsZoomed(!isZoomed); // Alterna o estado de zoom
+  };
 
   const handleLogout = () => {
     auth
@@ -64,38 +146,6 @@ export const Estoque = () => {
       .catch((error) => {
         console.error("Erro ao deslogar:", error);
       });
-  };
-
-  const handleImageClick = () => {
-    setIsZoomed(!isZoomed); // Alterna o estado de zoom
-  };
-
-  useEffect(() => {
-    const fetchCategorias = async () => {
-      if (!user) return;
-      try {
-        const snapshot = await getDocs(collection(db, "categorias"));
-        const categoriasFiltradas = snapshot.docs
-          .filter((doc) => doc.data().userId === user.uid)
-          .map((doc) => doc.data().nome);
-        setCategorias(categoriasFiltradas);
-      } catch (error) {
-        console.error("Erro ao buscar categorias:", error);
-      }
-    };
-    fetchCategorias();
-  }, [user]);
-
-  const fetchProdutos = async (userId) => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "produtos"));
-      const produtosArray = querySnapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((produto) => produto.userId === userId);
-      setProdutos(produtosArray);
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-    }
   };
 
   const handleImageChange = (e) => {
@@ -248,7 +298,6 @@ export const Estoque = () => {
     setEditedProductData({});
   };
 
-
   const handleSaveEdit = async () => {
     try {
       const novaImagemUrl = imagem
@@ -321,10 +370,9 @@ export const Estoque = () => {
   if (!user) return null;
 
   return (
-    <div className="container-default">
-
+    <div className="container-default estoque">
       <div className="filter_header">
-        <h1>Estoque</h1>
+        <h2>Estoque</h2>
         <div className="input_header">
           <div className="estoque-search">
             <input
@@ -351,7 +399,6 @@ export const Estoque = () => {
               ))}
             </select>
           </div>
-          <br></br>
 
           <div className="filtro">
             <label>Filtrar por Validade:</label>
@@ -365,6 +412,7 @@ export const Estoque = () => {
             </select>
           </div>
         </div>
+
         <div className="table_config">
           <table className="table_header">
             <thead className="thead_header">
@@ -634,23 +682,25 @@ export const Estoque = () => {
           <button onClick={handleCalcular} className="finalize-button">
             Calcular Total
           </button>
+
           {totalPrice > 0 && (
             <>
-              <h2>Preço Total: R${totalPrice.toFixed(2)}</h2>
+              <div className="footer-pagamento">
+                <h3>Preço Total: R${totalPrice.toFixed(2)}</h3>
 
-              {/* Se houver desconto, exibe o valor do desconto */}
-              {totalDesconto > 0 && (
-                <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
-              )}
+                {/* Se houver desconto, exibe o valor do desconto */}
+                {totalDesconto > 0 && (
+                  <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
+                )}
 
-              {totalLucro > 0 && <h3>Lucro: R${totalLucro.toFixed(2)}</h3>}
+                {totalLucro > 0 && <h3>Lucro: R${totalLucro.toFixed(2)}</h3>}
 
-              <button
-                onClick={handleFinalizarCompra}
-                className="finalize-button"
-              >
-                Concluir Pagamento
-              </button>
+                <button
+                  onClick={handleFinalizarCompra}
+                  className="finalize-button">
+                  Concluir Pagamento
+                </button>
+              </div>
             </>
           )}
         </div>
