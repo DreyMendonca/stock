@@ -1,0 +1,45 @@
+
+body.protanopia {
+  filter: url('#protanopia-filter');
+}
+
+body.deuteranopia {
+  filter: url('#deuteranopia-filter');
+}
+
+body.tritanopia {
+  filter: url('#tritanopia-filter');
+}
+
+/* Fallback para navegadores que não suportam SVG filters */
+body.protanopia {
+  filter: grayscale(1) contrast(1.2);
+}
+
+body.deuteranopia {
+  filter: sepia(0.6) hue-rotate(90deg);
+}
+
+body.tritanopia {
+  filter: hue-rotate(180deg) saturate(0.8);
+}
+
+body.achromatopsia {
+  filter: grayscale(1);
+}
+
+body.blue-yellow {
+  filter: hue-rotate(270deg) saturate(0.7);
+}
+
+body.invert {
+  filter: invert(1);
+}
+
+body.high-contrast {
+  filter: contrast(2) brightness(0.8);
+}
+
+body.sepia {
+  filter: sepia(1);
+}
