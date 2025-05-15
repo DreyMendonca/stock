@@ -1,0 +1,71 @@
+.recuperar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background: #f2f2f2;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .recuperar-container h2 {
+    margin-bottom: 20px;
+    font-size: 28px;
+    color: #333;
+  }
+  
+  .recuperar-container form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 400px;
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .recuperar-container input[type="email"] {
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border 0.3s;
+  }
+  
+  .recuperar-container input[type="email"]:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  .recuperar-container button {
+    padding: 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .recuperar-container button:hover {
+    background-color: #0056b3;
+  }
+  
+  .recuperar-container p {
+    margin-top: 15px;
+    font-size: 14px;
+  }
+  
+  .recuperar-container a {
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .recuperar-container a:hover {
+    text-decoration: underline;
+  }
+  
