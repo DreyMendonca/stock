@@ -9,6 +9,7 @@ import Estoque from './screens/Estoque';
 import CadastroUsuarioComum from './screens/CadastroUsuarioComum';
 import AdminRoute from './components/AdminRoute';
 import MainLayout from './screens/MainLayout';
+import RecuperarSenha from './screens/RecuperarSenha';
 
 
 import { ToastContainer } from 'react-toastify';
@@ -22,6 +23,8 @@ function App() {
           <Route path="/" element={<Navigate to="/Login" />} />
           <Route path="/Login" element={<Login />} />
           <Route path="/Cadastro" element={<Cadastro />} />
+          <Route path="/RecuperarSenha" element={<RecuperarSenha />} />
+          
           
           {/* Rota privada */}
           <Route
