@@ -107,6 +107,10 @@ export const Login = () => {
             <p className="login-link">
               Não tem uma conta? <a href="/cadastro">Registre-se</a>
             </p>
+            <p className="recuperar-senha-link">
+  <a href="/recuperarsenha">Esqueceu sua senha?</a>
+</p>
+
           </form>
         </div>
       </div>
