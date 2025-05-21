@@ -42,6 +42,8 @@ export const Estoque = () => {
   const [isZoomed, setIsZoomed] = useState(false);
   const navigate = useNavigate();
   const [totalLucro, setTotalLucro] = useState(0);
+  const [mensagemErro, setMensagemErro] = useState("");
+  const [tipoMensagem, setTipoMensagem] = useState(""); // 'erro' ou 'sucesso'
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -52,6 +54,13 @@ export const Estoque = () => {
     });
     return () => unsubscribe();
   }, []);
+const [onConfirmCallback, setOnConfirmCallback] = useState(null);
+
+  const mostrarMensagem = (mensagem, tipo = "erro", onConfirm = null) => {
+    setMensagemErro(mensagem);
+    setTipoMensagem(tipo);
+    setOnConfirmCallback(() => onConfirm); // Armazena a função de callback
+  };
 
   const handleLogout = () => {
     auth
@@ -195,7 +204,6 @@ export const Estoque = () => {
           const produtoRef = doc(db, "produtos", produto.id);
           await updateDoc(produtoRef, { quantidade: novoEstoque });
 
-
           await addDoc(collection(db, "historicoVendas"), {
             produtoId: produto.id,
             nome: produto.nome,
@@ -216,16 +224,20 @@ export const Estoque = () => {
   };
 
   const handleDelete = async (produtoId) => {
-    if (window.confirm("Tem certeza que deseja excluir este produto?")) {
-      try {
-        await deleteDoc(doc(db, "produtos", produtoId));
-        setProdutos((prev) => prev.filter((p) => p.id !== produtoId));
-        alert("Produto excluído com sucesso!");
-      } catch (error) {
-        console.error("Erro ao excluir produto:", error);
-        alert("Erro ao excluir o produto.");
+    mostrarMensagem(
+      "Tem certeza que deseja excluir este produto?",
+      "confirmacao",
+      async () => {
+        try {
+          await deleteDoc(doc(db, "produtos", produtoId));
+          setProdutos((prev) => prev.filter((p) => p.id !== produtoId));
+          mostrarMensagem("Produto excluído com sucesso!", "sucesso");
+        } catch (error) {
+          console.error("Erro ao excluir produto:", error);
+          mostrarMensagem("Erro ao excluir o produto.", "erro");
+        }
       }
-    }
+    );
   };
 
   const handleEditClick = (produto) => {
@@ -247,7 +259,6 @@ export const Estoque = () => {
     setEditingProductId(null);
     setEditedProductData({});
   };
-
 
   const handleSaveEdit = async () => {
     try {
@@ -277,9 +288,8 @@ export const Estoque = () => {
       setImagem(null);
       fetchProdutos(user.uid);
     } catch (error) {
-      console.error("Erro ao salvar edição:", error);
-      alert("Erro ao salvar as alterações do produto.");
-    }
+      console.error("Erro no handleSaveEdit:", error); // <--- Adicione isso
+      mostrarMensagem("Erro ao salvar as alterações do produto.", "erro");    }
   };
 
   const uploadImagem = async () => {
@@ -322,10 +332,62 @@ export const Estoque = () => {
 
   return (
     <div className="container-default">
-   
-
       <div className="filter_header">
         <h1>Estoque</h1>
+        {mensagemErro && (
+          <div className="">
+            <div
+              className={
+                tipoMensagem === "sucesso"
+                  ? "mensagem-sucesso"
+                  : tipoMensagem === "confirmacao"
+                  ? "mensagem-confirmacao"
+                  : "mensagem-erro"
+              }
+            >
+              <button
+                className="btn-fechar-erro"
+                onClick={() => {
+                  mostrarMensagem("");
+                  setTipoMensagem("");
+                }}
+                aria-label="Fechar mensagem"
+              >
+                &times;
+              </button>
+              <p style={{ margin: 0, fontSize: "16px", color: "inherit" }}>
+                {mensagemErro}
+              </p>
+
+              {tipoMensagem === "confirmacao" && (
+                <div className="botoes-confirmacao">
+                  <button
+                    className="btn-confirmar"
+                    onClick={() => {
+                      if (typeof onConfirmCallback === "function") {
+                        onConfirmCallback();
+                      }
+                      mostrarMensagem("");
+                      setTipoMensagem("");
+                    }}
+                  >
+                    Confirmar
+                  </button>
+                  <button
+                    className="btn-cancelar"
+                    onClick={() => {
+                      mostrarMensagem("");
+                      setTipoMensagem("");
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="input_header">
           <div className="estoque-search">
             <input
@@ -371,24 +433,14 @@ export const Estoque = () => {
             <thead className="thead_header">
               <tr>
                 <th>Imagem</th>
-                <th className="col_id">
-                    ID
-                </th>
+                <th className="col_id">ID</th>
                 <th>Nome do Produto</th>
-                <th className="col_cat">
-                    Categoria
-                </th>
+                <th className="col_cat">Categoria</th>
                 <th>Preço</th>
-                <th className="col_cat">
-                    Desconto
-                </th>
+                <th className="col_cat">Desconto</th>
                 <th>Estoque</th>
-                <th className="col_val">
-                    Validade
-                </th>
-                <th className="col_lot">
-                    Lote
-                </th>
+                <th className="col_val">Validade</th>
+                <th className="col_lot">Lote</th>
                 <th>Quantidade Para Venda</th>
                 <th>Ações</th>
               </tr>
@@ -398,8 +450,7 @@ export const Estoque = () => {
 
               return (
                 <tbody key={produto.id}>
-                    <tr className={isEstoqueBaixo ? "estoque-baixo" : ""}>
-
+                  <tr className={isEstoqueBaixo ? "estoque-baixo" : ""}>
                     <td>
                       {produto.imagem && (
                         <img
@@ -494,14 +545,20 @@ export const Estoque = () => {
                       />
                     </td>
                     <td>
-                        <div className="action-buttons">
-                            <button onClick={() => handleEditClick(produto)} className="edit-button" >
-                                <i className="fa fa-pencil"></i> Editar
-                            </button>
-                            <button onClick={() => handleDelete(produto.id)} className="delete-button">
-                                <i className="fa fa-trash"></i> Excluir
-                            </button>
-                        </div>
+                      <div className="action-buttons">
+                        <button
+                          onClick={() => handleEditClick(produto)}
+                          className="edit-button"
+                        >
+                          <i className="fa fa-pencil"></i> Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(produto.id)}
+                          className="delete-button"
+                        >
+                          <i className="fa fa-trash"></i> Excluir
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
@@ -668,7 +725,8 @@ export const Estoque = () => {
               <p>Escaneie o código para pagar</p>
               <img src={qrCodeImage} alt="QR Code para pagamento" width={300} />
               <br />
-              <button className="btn"
+              <button
+                className="btn"
                 style={{
                   textAlign: "center",
                   width: "100%",

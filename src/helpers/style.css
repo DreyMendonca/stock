@@ -1,0 +1,125 @@
+
+.mensagem-erro {
+  position: fixed !important;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  font-size: 22px;
+  font-weight: bold;
+  max-width: 90%;
+  width: 500px;
+  background-color: white;
+  padding: 25px 35px;
+  border-radius: 12px;
+  border: 2px solid #d33;
+  color: #d33;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  line-height: 1.5;
+  position: relative; /* importante para o ::before funcionar corretamente */
+}
+
+/* Adiciona a faixa vermelha */
+.mensagem-erro::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px; /* largura da faixa */
+  height: 100%;
+  background-color: #d33;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.mensagem-sucesso {
+    
+  position: fixed !important;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  font-size: 22px;
+  font-weight: bold;
+  max-width: 90%;
+  width: 500px;
+  background-color: #ffffff;
+  padding: 25px 35px;
+  border-radius: 12px;
+  border: 2px solid #2e7d32;
+  color: #2e7d32;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  line-height: 1.5;
+}
+.mensagem-sucesso::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 10px; /* largura da faixa */
+  height: 100%;
+  background-color: #2e7d32;
+  border-top-left-radius: 10px;
+  border-bottom-left-radius: 10px;
+}
+
+.btn-fechar-erro {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 30px;
+  color: inherit;
+  cursor: pointer;
+  font-weight: bolder;
+  z-index: 10000;
+}
+.btn-fechar-erro:hover {
+  color: #a00;
+}
+.mensagem-confirmacao {
+  position: fixed !important;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  font-size: 22px;
+  font-weight: bold;
+  max-width: 90%;
+  width: 500px;
+  background-color: white;
+  padding: 25px 35px;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  line-height: 1.5;
+  position: relative; /* importante para o ::before funcionar corretamente */
+}
+
+.botoes-confirmacao {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 10px;
+}
+
+.btn-confirmar,
+.btn-cancelar {
+  padding: 8px 16px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  border-radius: 4px;
+}
+
+.btn-confirmar {
+  background-color: green;
+  color: white;
+}
+
+.btn-cancelar {
+  background-color: red;
+  color: white;
+}
