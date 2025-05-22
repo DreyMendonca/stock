@@ -208,6 +208,12 @@ button.button-del:hover {
   gap: 5px;
 }
 
+button#toggle-filters {
+  top: 0px;
+  right: 0px;
+  font-weight: 600;
+}
+
 @media (max-width: 1000px) {
   .header__right {
     display: none !important;

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { auth, db } from '../firebase';
-import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firestore'; // Adicionei collection aqui
+import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
 
 const AdminRoute = ({ children }) => {
     const [status, setStatus] = useState({
@@ -59,9 +59,11 @@ const AdminRoute = ({ children }) => {
         return () => unsubscribe();
     }, []);
 
+    /*
     if (status.loading) {
         return <div>Verificando permissões...</div>;
     }
+    
 
     if (status.error) {
         console.error('Erro na verificação:', status.error);
@@ -75,7 +77,7 @@ const AdminRoute = ({ children }) => {
         console.log('Redirecionando para /login - Usuário não é admin');
         return <Navigate to="/login" state={{ from: location.pathname }} replace />;
     }
-    
+    */
     return children;
 };
 
