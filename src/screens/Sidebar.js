@@ -75,13 +75,14 @@ const MySidebar = ({ handleLogout }) => {
         <FaBars />
       </button>
 
-      <Sidebar
+      <Sidebar backgroundColor="#ffffff"
         collapsed={collapsed}
         onMouseEnter={() => setCollapsed(false)}
         onMouseLeave={() => setCollapsed(true)}
         className={`sidebar-container ${isMobileOpen ? 'open' : ''}`}
       >
 
+    
         <div className="sidebar-header">
           <button className="hamburger-btn" onClick={toggleMobileSidebar}>
             <FaBars />
