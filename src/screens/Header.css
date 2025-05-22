@@ -12,12 +12,13 @@
   font-size: 1.6rem;
   font-weight: 600;
   color: #0b4983;
-  
+  margin-top: 15px;
   flex: 1;
 }
 
 .header__center {
   flex: 2;
+ 
   display: flex;
   justify-content: center;
 }

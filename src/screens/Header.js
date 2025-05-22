@@ -35,13 +35,7 @@ const Header = () => {
       </div>
 
 
-      <div className="header__right">
-        <img
-          src="https://cdn-icons-png.flaticon.com/512/1144/1144760.png"
-          alt="Usuário"
-          className="user-icon"
-        />
-      </div>
+     
     </header>
   );
 };

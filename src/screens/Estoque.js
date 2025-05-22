@@ -8,6 +8,8 @@ import {
   updateDoc,
   doc,
   addDoc,
+  query,
+  where,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import "./Estoque.css";
@@ -46,10 +48,21 @@ export const Estoque = () => {
   const [tipoMensagem, setTipoMensagem] = useState(""); // 'erro' ou 'sucesso'
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((currentUser) => {
+    const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        fetchProdutos(currentUser.uid);
+        // Ao invés de passar currentUser.uid diretamente, vamos buscar o usuário no Firestore
+        // para acessar o parentUid e determinar como buscar os produtos.
+        const userDoc = await getDocs(query(collection(db, 'usuarios'), where('uid', '==', currentUser.uid)));
+        if (!userDoc.empty) {
+          const userData = userDoc.docs[0].data();
+          fetchProdutos(currentUser.uid); // Passamos o UID do usuário logado para a função fetchProdutos
+        } else {
+          console.error("Informações do usuário não encontradas.");
+        }
+      } else {
+        setUser(null);
+        setProdutos([]);
       }
     });
     return () => unsubscribe();
@@ -60,6 +73,75 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
     setMensagemErro(mensagem);
     setTipoMensagem(tipo);
     setOnConfirmCallback(() => onConfirm); // Armazena a função de callback
+  };
+
+  const fetchProdutos = async (uid) => {
+    setIsLoading(true);
+    setErrorMessage("");
+    try {
+      const userDoc = await getDocs(query(collection(db, 'usuarios'), where('uid', '==', uid)));
+      if (!userDoc.empty) {
+        const userData = userDoc.docs[0].data();
+        let produtosQuery;
+
+        if (userData.parentUid === null) {
+          // Usuário é um administrador, busca produtos pelo próprio UID
+          produtosQuery = query(collection(db, "produtos"), where("userId", "==", uid));
+        } else {
+          // Usuário é comum, busca produtos pelo parentUid (UID do admin que o criou)
+          produtosQuery = query(collection(db, "produtos"), where("userId", "==", userData.parentUid));
+        }
+
+        const querySnapshot = await getDocs(produtosQuery);
+        const produtosArray = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        setProdutos(produtosArray);
+      } else {
+        setErrorMessage("Erro ao buscar informações do usuário.");
+        setProdutos([]);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+      setErrorMessage("Erro ao buscar produtos.");
+      setProdutos([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchCategorias = async () => {
+      if (!user) return;
+      try {
+        const userDoc = await getDocs(query(collection(db, 'usuarios'), where('uid', '==', user.uid)));
+        if (!userDoc.empty) {
+          const userData = userDoc.docs[0].data();
+          let categoriasQuery;
+
+          if (userData.parentUid === null) {
+            // Usuário é um administrador, busca categorias pelo próprio UID
+            categoriasQuery = query(collection(db, "categorias"), where("userId", "==", user.uid));
+          } else {
+            // Usuário é comum, busca categorias pelo parentUid (UID do admin que o criou)
+            categoriasQuery = query(collection(db, "categorias"), where("userId", "==", userData.parentUid));
+          }
+
+          const snapshot = await getDocs(categoriasQuery);
+          const categoriasFiltradas = snapshot.docs.map((doc) => doc.data().nome);
+          setCategorias(categoriasFiltradas);
+        } else {
+          console.error("Informações do usuário não encontradas ao buscar categorias.");
+          setCategorias([]);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar categorias:", error);
+        setCategorias([]);
+      }
+    };
+    fetchCategorias();
+  }, [user]);
+
+  const handleImageClick = () => {
+    setIsZoomed(!isZoomed); // Alterna o estado de zoom
   };
 
   const handleLogout = () => {
@@ -73,38 +155,6 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
       .catch((error) => {
         console.error("Erro ao deslogar:", error);
       });
-  };
-
-  const handleImageClick = () => {
-    setIsZoomed(!isZoomed); // Alterna o estado de zoom
-  };
-
-  useEffect(() => {
-    const fetchCategorias = async () => {
-      if (!user) return;
-      try {
-        const snapshot = await getDocs(collection(db, "categorias"));
-        const categoriasFiltradas = snapshot.docs
-          .filter((doc) => doc.data().userId === user.uid)
-          .map((doc) => doc.data().nome);
-        setCategorias(categoriasFiltradas);
-      } catch (error) {
-        console.error("Erro ao buscar categorias:", error);
-      }
-    };
-    fetchCategorias();
-  }, [user]);
-
-  const fetchProdutos = async (userId) => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "produtos"));
-      const produtosArray = querySnapshot.docs
-        .map((doc) => ({ id: doc.id, ...doc.data() }))
-        .filter((produto) => produto.userId === userId);
-      setProdutos(produtosArray);
-    } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-    }
   };
 
   const handleImageChange = (e) => {
@@ -414,7 +464,6 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
               ))}
             </select>
           </div>
-          <br></br>
 
           <div className="filtro">
             <label>Filtrar por Validade:</label>
@@ -428,6 +477,7 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
             </select>
           </div>
         </div>
+
         <div className="table_config">
           <table className="table_header">
             <thead className="thead_header">
@@ -692,23 +742,25 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
           <button onClick={handleCalcular} className="finalize-button">
             Calcular Total
           </button>
+
           {totalPrice > 0 && (
             <>
-              <h2>Preço Total: R${totalPrice.toFixed(2)}</h2>
+              <div className="footer-pagamento">
+                <h3>Preço Total: R${totalPrice.toFixed(2)}</h3>
 
-              {/* Se houver desconto, exibe o valor do desconto */}
-              {totalDesconto > 0 && (
-                <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
-              )}
+                {/* Se houver desconto, exibe o valor do desconto */}
+                {totalDesconto > 0 && (
+                  <h3>Desconto: -R${totalDesconto.toFixed(2)}</h3>
+                )}
 
-              {totalLucro > 0 && <h3>Lucro: R${totalLucro.toFixed(2)}</h3>}
+                {totalLucro > 0 && <h3>Lucro: R${totalLucro.toFixed(2)}</h3>}
 
-              <button
-                onClick={handleFinalizarCompra}
-                className="finalize-button"
-              >
-                Concluir Pagamento
-              </button>
+                <button
+                  onClick={handleFinalizarCompra}
+                  className="finalize-button">
+                  Concluir Pagamento
+                </button>
+              </div>
             </>
           )}
         </div>

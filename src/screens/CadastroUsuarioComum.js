@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -19,91 +19,78 @@ const CadastroUsuarioComum = () => {
         senha: '',
         confirmarSenha: ''
     });
-    
+
     const [status, setStatus] = useState({
         loading: true,
         isAdmin: false,
         error: null
     });
-    
-    const navigate = useNavigate();
 
+    const [funcionarios, setFuncionarios] = useState([]);
+    const navigate = useNavigate();
     const [user, setUser] = useState(null);
 
     const handleLogout = () => {
         auth.signOut()
-        .then(() => {
-            console.log('Usuário deslogado com sucesso');
-            setUser(null); // Se você precisar limpar o estado local do usuário
-            navigate('/login'); // Redireciona para a página /login
-        })
-        .catch((error) => {
-            console.error('Erro ao deslogar:', error);
-        });
+            .then(() => {
+                console.log('Usuário deslogado com sucesso');
+                setUser(null);
+                navigate('/login');
+            })
+            .catch((error) => {
+                console.error('Erro ao deslogar:', error);
+            });
     };
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
             if (user) {
-                console.log('UID do Auth:', user.uid);
-                
                 try {
-                    const querySnapshot = await getDocs(
-                        query(
-                            collection(db, 'usuarios'),
-                            where('uid', '==', user.uid)
-                        )
-                    );
-                    
-                    if (!querySnapshot.empty) {
-                        const userData = querySnapshot.docs[0].data();
-                        console.log('Dados encontrados:', userData);
-                        setStatus({
-                            loading: false,
-                            isAdmin: userData.role === 'admin',
-                            error: null
-                        });
+                    const queryAdmin = query(collection(db, 'usuarios'), where('uid', '==', user.uid));
+                    const snapshotAdmin = await getDocs(queryAdmin);
+
+                    if (!snapshotAdmin.empty) {
+                        const adminData = snapshotAdmin.docs[0].data();
+                        setStatus({ loading: false, isAdmin: adminData.role === 'admin', error: null });
+
+                        if (adminData.role === 'admin') {
+                            // Buscar todos os usuários que têm o UID do admin como parentUid
+                            const queryFuncionarios = query(
+                                collection(db, 'usuarios'),
+                                where('parentUid', '==', user.uid)
+                            );
+                            const snapshotFuncionarios = await getDocs(queryFuncionarios);
+                            const listaFuncionarios = snapshotFuncionarios.docs.map(doc => ({
+                                id: doc.id,
+                                ...doc.data()
+                            }));
+                            setFuncionarios(listaFuncionarios);
+                        }
                     } else {
-                        console.log('Nenhum documento com este UID');
-                        setStatus({
-                            loading: false,
-                            isAdmin: false,
-                            error: 'Perfil de usuário não encontrado'
-                        });
+                        setStatus({ loading: false, isAdmin: false, error: 'Perfil de administrador não encontrado' });
                     }
                 } catch (error) {
-                    console.error('Erro ao buscar usuário:', error);
-                    setStatus({
-                        loading: false,
-                        isAdmin: false,
-                        error: error.message
-                    });
+                    console.error('Erro ao buscar dados do administrador ou funcionários:', error);
+                    setStatus({ loading: false, isAdmin: false, error: error.message });
                 }
             } else {
-                setStatus({ 
-                    loading: false, 
-                    isAdmin: false,
-                    error: 'Nenhum usuário autenticado'
-                });
+                setStatus({ loading: false, isAdmin: false, error: 'Nenhum usuário autenticado' });
             }
         });
-    
+
         return () => unsubscribe();
     }, []);
 
-    // Função para formatar o número de telefone
     const mascaraTelefone = (value) => {
         return value
-            .replace(/\D/g, '') // Remove tudo o que não for número
-            .replace(/^(\d{2})(\d)/, '($1) $2') // Adiciona o parênteses e o espaço
-            .replace(/(\d{5})(\d)/, '$1-$2') // Adiciona o hífen
-            .substring(0, 15); // Limita a 15 caracteres
+            .replace(/\D/g, '')
+            .replace(/^(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{5})(\d)/, '$1-$2')
+            .substring(0, 15);
     };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-
-        // Aplica a máscara no telefone
         if (name === 'telefone') {
             setFormData({ ...formData, [name]: mascaraTelefone(value) });
         } else {
@@ -113,30 +100,28 @@ const CadastroUsuarioComum = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         if (!status.isAdmin) {
             toast.error('Permissões insuficientes');
             return;
         }
-    
-        // Validações
+
         if (formData.senha !== formData.confirmarSenha) {
             toast.error('As senhas não coincidem');
             return;
         }
-            
+
         if (!/\S+@\S+\.\S+/.test(formData.email)) {
             toast.error('Por favor, insira um e-mail válido');
             return;
         }
-            
+
         if (formData.senha.length < 6) {
             toast.error('A senha deve ter pelo menos 6 caracteres');
             return;
-        } 
-        
+        }
+
         try {
-            // 1. Pegue o UID do admin ANTES de criar o novo usuário
             const adminUser = auth.currentUser;
             console.log('[DEBUG] UID do Admin que está criando o usuário:', adminUser.uid);
 
@@ -144,34 +129,41 @@ const CadastroUsuarioComum = () => {
                 toast.error('Admin não está logado');
                 return;
             }
-    
-            // 2. Cria o usuário comum
+
             const userCredential = await createUserWithEmailAndPassword(
-                auth, 
-                formData.email, 
+                auth,
+                formData.email,
                 formData.senha
             );
-            
+
             console.log('[DEBUG] UID do novo usuário criado:', userCredential.user.uid);
-            // 3. Salva os dados com o parentUid correto
             await addDoc(collection(db, 'usuarios'), {
                 usuario: formData.usuario,
                 email: formData.email,
                 telefone: formData.telefone,
                 uid: userCredential.user.uid,
                 role: 'user',
-                parentUid: adminUser.uid, // Usando o UID do admin logado
+                parentUid: adminUser.uid,
                 criadoEm: new Date()
             });
-    
+
             toast.success('Usuário comum criado com sucesso!');
-            
-            // 4. Mantém o admin logado e redireciona
-            navigate('/home');
-            
+            setFormData({ usuario: '', email: '', telefone: '', senha: '', confirmarSenha: '' }); // Limpa o formulário
+            // Recarrega a lista de funcionários após a criação
+            const queryFuncionarios = query(
+                collection(db, 'usuarios'),
+                where('parentUid', '==', adminUser.uid)
+            );
+            const snapshotFuncionarios = await getDocs(queryFuncionarios);
+            const listaFuncionarios = snapshotFuncionarios.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+            setFuncionarios(listaFuncionarios);
+
         } catch (error) {
             console.error('Erro ao criar usuário:', error);
-            
+
             if (error.code === 'auth/email-already-in-use') {
                 toast.error('Este e-mail já está cadastrado');
             } else if (error.code === 'auth/weak-password') {
@@ -182,8 +174,40 @@ const CadastroUsuarioComum = () => {
         }
     };
 
+    const alterarRole = async (id, novoRole) => {
+        try {
+            const funcionarioRef = doc(db, 'usuarios', id);
+            await updateDoc(funcionarioRef, {
+                role: novoRole
+            });
+            // Atualiza a lista localmente para refletir a mudança
+            setFuncionarios(funcionarios.map(funcionario =>
+                funcionario.id === id ? { ...funcionario, role: novoRole } : funcionario
+            ));
+            toast.success(`Role do usuário atualizado para ${novoRole}`);
+        } catch (error) {
+            console.error('Erro ao alterar o role do usuário:', error);
+            toast.error('Erro ao alterar o role do usuário');
+        }
+    };
+
+    const excluirUsuario = async (id) => {
+        if (window.confirm('Tem certeza que deseja excluir este usuário?')) {
+            try {
+                const usuarioRef = doc(db, 'usuarios', id);
+                await deleteDoc(usuarioRef);
+                // Atualiza a lista localmente para refletir a exclusão
+                setFuncionarios(funcionarios.filter(funcionario => funcionario.id !== id));
+                toast.success('Usuário excluído com sucesso!');
+            } catch (error) {
+                console.error('Erro ao excluir usuário:', error);
+                toast.error('Erro ao excluir usuário.');
+            }
+        }
+    };
+
     if (status.loading) {
-        return <div>Verificando permissões...</div>;
+        return <div>Verificando permissões e carregando dados...</div>;
     }
 
     if (status.error) {
@@ -207,35 +231,7 @@ const CadastroUsuarioComum = () => {
     }
 
     return (
-        <div className="container-default">
-            <aside className="sidebar">
-                {/* Sidebar conteúdo */}
-                <a href='/home'>
-                    <img src={LogoSide} style={{ width: '55px', height: 'auto' }}/>
-                    <span>Estocaí</span>
-                </a>
-                
-                <a href='/estoque'>                
-                    <img src={EstoqueSide} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Estoque</span>
-                </a>
-
-                <a href='/adicionarproduto'>               
-                    <img src={AddSide} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Adicionar</span>
-                </a>
-
-                <a href='/cadastro-usuario'>               
-                    <img src={FuncionarioSide} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Funcionário</span>
-                </a>
-
-                <a href='#' onClick={handleLogout}>               
-                    <img src={Logout} style={{ width: '45px', height: 'auto' }}/>
-                    <span>Sair</span>
-                </a>
-            </aside>
-
+        <div className="container-funcionario">
             <div className="container-usercomum">
                 <h2>Cadastrar Usuário Comum</h2>
 
@@ -261,7 +257,7 @@ const CadastroUsuarioComum = () => {
                             required
                         />
                     </div>
-                    
+
                     <div className="form-group">
                         <input
                             type="tel"
@@ -271,7 +267,7 @@ const CadastroUsuarioComum = () => {
                             onChange={handleChange}
                         />
                     </div>
-                    
+
                     <div className="form-group">
                         <input
                             type="password"
@@ -283,7 +279,7 @@ const CadastroUsuarioComum = () => {
                             required
                         />
                     </div>
-                    
+
                     <div className="form-group">
                         <input
                             type="password"
@@ -294,9 +290,53 @@ const CadastroUsuarioComum = () => {
                             required
                         />
                     </div>
-                    
+
                     <button className="register" type="submit">Cadastrar</button>
                 </form>
+            </div>
+
+            <div className="container-funcionarios">
+                <h2>Lista de Funcionários</h2>
+
+                {funcionarios.length > 0 ? (
+                    <div className="table_config">
+                        <table className="table_header">
+                            <thead className="thead_header">
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Telefone</th>
+                                    <th>Permissão</th>
+                                    <th>Editar</th>
+                                    <th>Excluir</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {funcionarios.map(funcionario => (
+                                    <tr key={funcionario.id}>
+                                        <td>{funcionario.usuario}</td>
+                                        <td>{funcionario.email}</td>
+                                        <td>{funcionario.telefone}</td>
+                                        <td>{funcionario.role}</td>
+                                        <td>
+                                            {funcionario.role === 'user' ? (
+                                                <button onClick={() => alterarRole(funcionario.id, 'admin')}>Tornar Admin</button>
+                                            ) : (
+                                                <button onClick={() => alterarRole(funcionario.id, 'user')}>Tornar Comum</button>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <button className="button-del" onClick={() => excluirUsuario(funcionario.id)}>Excluir Funcionário</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                ) : (
+                    <p>Nenhum funcionário cadastrado.</p>
+                )}
             </div>
         </div>
     );

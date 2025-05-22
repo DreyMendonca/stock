@@ -1,12 +1,17 @@
 * {
   box-sizing: border-box !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif !important;
 }
 
+
 body {
+  overflow-x: hidden;
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+    sans-serif !important;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -43,11 +48,19 @@ code {
   width: 100%;
 }
 
-.container-usercomum {
+.container-usercomum,
+.container-funcionarios {
   width: 100%;
   background-color: #ffffff;
   padding: 1rem;
-  min-height: 100vh;
+  margin-bottom: 1rem;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+  border-radius: 5px;
+}
+
+.container-usercomum h2,
+.container-funcionarios h2 {
+  margin-top: 0;
 }
 
 .container-usercomum .form-group {
@@ -65,4 +78,155 @@ code {
   cursor: pointer;
   width: 100%;
   max-width: 300px;
+}
+
+.container-funcionarios .table_header {
+  background-color: #fff !important;
+  font-size: 16px;
+  font-weight: 500;
+
+}
+
+.container-funcionarios .table_config {
+  box-shadow: none !important;
+  border: 1px solid #ddd;
+  border-radius: 5px;    
+  overflow: auto !important;
+}
+
+.table_config {
+  overflow: auto !important;
+  white-space: nowrap ;
+}
+
+.container-funcionarios table {
+  white-space: nowrap;
+  overflow: auto;
+}
+
+.main-layout {
+  width: calc(100% - 80px) !important;
+}
+
+button {
+  cursor: pointer;
+}
+
+.container-funcionarios button {
+  background-color: #093d66;
+  color: #ffffff;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+}
+
+.buttons-add-product {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.box-buttons-add button {
+  margin-top: 0px;
+}
+
+.box-buttons-add {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.box-buttons-add .form-group.nova-categoria {
+  margin-bottom: 0px;
+}
+
+.form-section.pag-add-product .form-header {
+  gap: 1rem;
+}
+
+.form-section.pag-add-product .form-group {
+  margin: 0px;
+  width: 100%;
+}
+
+.form-section.pag-add-product label {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.form-section.pag-add-product h2 {
+  margin: 0px;
+}
+
+.container-default.estoque h2 {
+  margin-top: 0;
+}
+
+.input_header .filtro {
+  margin-bottom: 1rem;
+}
+
+.container-default.estoque {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.container-default.estoque button {
+  font-weight: 500;
+}
+
+.finalize-button {
+  margin-top: 1rem !important;
+}
+
+.footer-pagamento {
+  margin: 1rem 0;
+  padding: 1rem;
+  background-color: #28a74538;
+  border-radius: 5px;
+}
+
+.footer-pagamento > * {
+  margin: 0;
+}
+
+button.button-del {
+  background-color: #dd172b;
+}
+
+button.button-del:hover {
+  background-color: #66040e;
+}
+
+.action-buttons {
+  flex-direction: row !important;
+  gap: 5px;
+}
+
+@media (max-width: 1000px) {
+  .header__right {
+    display: none !important;
+  }
+}
+
+@media (max-width: 650px) {
+  .form-section.pag-add-product .form-header,
+  .buttons-add-product {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .box-buttons-add button {
+    width: 100%;
+  }
+  .box-buttons-add .form-group.nova-categoria {
+    margin-top: 1rem;
+  }
+  .nova-cat-row {
+    flex-direction: column;
+  }
 }
