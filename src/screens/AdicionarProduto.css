@@ -44,6 +44,7 @@
     flex-direction: column;
     width: 100%;
     align-content: baseline;
+
 }
 
 .form-group {
@@ -57,6 +58,11 @@ input, select {
     padding: 0.6rem;
     border: 1px solid #ccc;
     border-radius: 8px;
+}
+
+#btn-header {
+    display: flex;
+    gap: 16px;
 }
 
 .preview-imagem {
@@ -124,5 +130,11 @@ input, select {
 @media (max-width: 500px) {
     .form-header {
         flex-direction: column;
+
+    
+    }
+    #btn-header {
+        flex-direction: column;
+        gap: 8px;
     }
 }
