@@ -10,7 +10,7 @@
       content="Web site created using create-react-app"
     />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
       user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
@@ -30,94 +30,124 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-<div vw class="enabled">
-  <div vw-access-button class="active"></div>
-  <div vw-plugin-wrapper>
-    <div class="vw-plugin-top-wrapper"></div>
-  </div>
-</div>
-<script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-<script>
-  new window.VLibras.Widget('https://vlibras.gov.br/app');
-</script>
-  
-<div id="color-blindness-filters" style="position: absolute; top: 20px; right: 20px; z-index: 10000;">
-  <button id="toggle-filters" style="
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-    z-index: 10000;
-    position: absolute;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-  ">Selecionar Filtro</button>
-  <ul id="filters-list" style="
-    display: none;
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    list-style: none;
-    padding: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-  ">
-    <li style="padding: 5px; cursor: pointer;" data-filter="">Sem Filtro</li>
-    <li style="padding: 5px; cursor: pointer;" data-filter="protanopia">Protanopia</li>
-    <li style="padding: 5px; cursor: pointer;" data-filter="deuteranopia">Deuteranopia</li>
-    <li style="padding: 5px; cursor: pointer;" data-filter="tritanopia">Tritanopia</li>
-    <li style="padding: 5px; cursor: pointer;" data-filter="achromatopsia">Acromatopsia</li>
-    <li style="padding: 5px; cursor: pointer;" data-filter="blue-yellow">Azul-Amarelo</li>
-    <li style="padding: 5px; cursor: pointer;" data-filter="invert">Inverter Cores</li>
-  <li style="padding: 5px; cursor: pointer;" data-filter="high-contrast">Alto Contraste</li>
-  <li style="padding: 5px; cursor: pointer;" data-filter="sepia">Sépia</li>
-  </ul>
-</div>
+    <div vw class="enabled">
+      <div vw-access-button class="active"></div>
+      <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+      </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+      new window.VLibras.Widget("https://vlibras.gov.br/app");
+    </script>
 
-<script>
-  const body = document.body;
-  const toggleButton = document.getElementById('toggle-filters');
-  const filtersList = document.getElementById('filters-list');
+    <div
+      id="color-blindness-filters"
+      style="position: absolute; top: 20px; right: 20px; z-index: 10000; margin-top: 7%;"
+    >
+      <button
+        id="toggle-filters"
+        style="
+          margin-top: 3%;
+          background-color: #083278;
+          color: white;
+          border: none;
+          padding: 10px;
+          font-size: 10px;
+          cursor: pointer;
+          border-radius: 5px;
+          z-index: 10000;
+          position: absolute;
+          box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+        "
+      >
+        Selecionar Filtro
+      </button>
+      <ul
+        id="filters-list"
+        style="
+          display: none;
+          position: absolute;
+          top: 50px;
+          right: 0;
+          background-color: white;
+          border: 1px solid #ccc;
+          border-radius: 5px;
+          list-style: none;
+          padding: 10px;
+          box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+          z-index: 1000;
+        "
+      >
+        <li style="padding: 5px; cursor: pointer" data-filter="">Sem Filtro</li>
+        <li style="padding: 5px; cursor: pointer" data-filter="protanopia">
+          Protanopia
+        </li>
+        <li style="padding: 5px; cursor: pointer" data-filter="deuteranopia">
+          Deuteranopia
+        </li>
+        <li style="padding: 5px; cursor: pointer" data-filter="tritanopia">
+          Tritanopia
+        </li>
+        <li style="padding: 5px; cursor: pointer" data-filter="achromatopsia">
+          Acromatopsia
+        </li>
+        <li style="padding: 5px; cursor: pointer" data-filter="blue-yellow">
+          Azul-Amarelo
+        </li>
+        <li style="padding: 5px; cursor: pointer" data-filter="invert">
+          Inverter Cores
+        </li>
+        <li style="padding: 5px; cursor: pointer" data-filter="high-contrast">
+          Alto Contraste
+        </li>
+        <li style="padding: 5px; cursor: pointer" data-filter="sepia">Sépia</li>
+      </ul>
+    </div>
 
-  // Restaurar o filtro salvo no localStorage
-  const savedFilter = localStorage.getItem('selectedFilter');
-  if (savedFilter) {
-    body.className = savedFilter;
-    toggleButton.textContent = savedFilter === '' ? 'Selecionar Filtro' : `Filtro: ${savedFilter}`;
-  }
+    <script>
+      const body = document.body;
+      const toggleButton = document.getElementById("toggle-filters");
+      const filtersList = document.getElementById("filters-list");
 
-  // Exibir ou ocultar a lista de filtros
-  toggleButton.addEventListener('click', () => {
-    filtersList.style.display = filtersList.style.display === 'block' ? 'none' : 'block';
-  });
+      // Restaurar o filtro salvo no localStorage
+      const savedFilter = localStorage.getItem("selectedFilter");
+      if (savedFilter) {
+        body.className = savedFilter;
+        toggleButton.textContent =
+          savedFilter === "" ? "Selecionar Filtro" : `Filtro: ${savedFilter}`;
+      }
 
-  // Aplicar o filtro selecionado
-  filtersList.addEventListener('click', (event) => {
-    const filter = event.target.getAttribute('data-filter');
-    if (filter !== null) {
-      body.className = filter;
-      toggleButton.textContent = filter === '' ? 'Selecionar Filtro' : `Filtro: ${filter}`;
-      filtersList.style.display = 'none';
+      // Exibir ou ocultar a lista de filtros
+      toggleButton.addEventListener("click", () => {
+        filtersList.style.display =
+          filtersList.style.display === "block" ? "none" : "block";
+      });
 
-      // Salvar o filtro no localStorage
-      localStorage.setItem('selectedFilter', filter);
-    }
-  });
+      // Aplicar o filtro selecionado
+      filtersList.addEventListener("click", (event) => {
+        const filter = event.target.getAttribute("data-filter");
+        if (filter !== null) {
+          body.className = filter;
+          toggleButton.textContent =
+            filter === "" ? "Selecionar Filtro" : `Filtro: ${filter}`;
+          filtersList.style.display = "none";
 
-  
+          // Salvar o filtro no localStorage
+          localStorage.setItem("selectedFilter", filter);
+        }
+      });
 
-  // Fechar a lista ao clicar fora dela
-  document.addEventListener('click', (event) => {
-    if (!filtersList.contains(event.target) && event.target !== toggleButton) {
-      filtersList.style.display = 'none';
-    }
-  });
-</script>
+      // Fechar a lista ao clicar fora dela
+      document.addEventListener("click", (event) => {
+        if (
+          !filtersList.contains(event.target) &&
+          event.target !== toggleButton
+        ) {
+          filtersList.style.display = "none";
+        }
+      });
+    </script>
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
