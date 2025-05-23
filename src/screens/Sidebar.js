@@ -5,150 +5,99 @@ import './Sidebar.css';
 import logoFull from "../images/LogoEstocaAi.svg";
 import logoMini from "../images/logoSide.png";
 import { auth, db } from '../firebase';
-import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs } from 'firebase/firestore';
 
 const MySidebar = ({ handleLogout }) => {
   const [collapsed, setCollapsed] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  
-
-  const toggleMobileSidebar = () => {
-    setIsMobileOpen(!isMobileOpen);
-  };
-
-  const [largura, setLargura] = useState(window.innerWidth);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const [status, setStatus] = useState({
+    loading: true,
+    isAdmin: false,
+    error: null,
+  });
 
   useEffect(() => {
-    const handleResize = () => setLargura(window.innerWidth);
+    const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const [isMobile, setIsMobile] = useState(false)
-  const toggleMenuMobile = () => {
-    setIsMobile(!isMobile)
-  }
-  const [status, setStatus] = useState({
-    loading: true,
-    isAdmin: false,
-    error: null
-  });
-
-  
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
-        console.log('UID do Auth:', user.uid);
-
         try {
           const querySnapshot = await getDocs(
-            query(collection(db, 'usuarios'),
-              where('uid', '==', user.uid))
+            query(collection(db, 'usuarios'), where('uid', '==', user.uid))
           );
-
           if (!querySnapshot.empty) {
             const userData = querySnapshot.docs[0].data();
-            console.log('Dados encontrados:', userData);
-            setStatus({
-              loading: false,
-              isAdmin: userData.role === 'admin',
-              error: null
-            });
+            setStatus({ loading: false, isAdmin: userData.role === 'admin', error: null });
           } else {
-            console.log('Nenhum documento com este UID');
-            setStatus({
-              loading: false,
-              isAdmin: false,
-              error: 'Usuário não encontrado no banco de dados'
-            });
+            setStatus({ loading: false, isAdmin: false, error: 'Usuário não encontrado' });
           }
         } catch (error) {
-          console.error('Erro ao buscar usuário:', error);
-          setStatus({
-            loading: false,
-            isAdmin: false,
-            error: error.message
-          });
+          setStatus({ loading: false, isAdmin: false, error: error.message });
         }
       } else {
-        setStatus({
-          loading: false,
-          isAdmin: false,
-          error: 'Nenhum usuário autenticado'
-        });
+        setStatus({ loading: false, isAdmin: false, error: 'Nenhum usuário autenticado' });
       }
     });
 
     return () => unsubscribe();
   }, []);
 
+  const isDesktop = windowWidth >= 600;
+
   return (
     <>
-      {/* Botão hambúrguer para dispositivos móveis */}
-      {/* <button className="hamburger-btn" onClick={toggleMobileSidebar}>
-        <FaBars />
-      </button> */}
-      {
-        largura >= 500 ? 
+      {/* Botão hambúrguer sempre visível em mobile */}
+      {!isDesktop && (
+        <button className="hamburger-btn" onClick={() => setIsMobileOpen(!isMobileOpen)}>
+          <FaBars />
+        </button>
+      )}
+
+      {isDesktop ? (
         <Sidebar
-        backgroundColor="#ffffff"
-        collapsed={collapsed}
-        onMouseEnter={() => setCollapsed(false)}
-        onMouseLeave={() => setCollapsed(true)}
-        className={`sidebar-container 
-        ${collapsed ? 'collapsed' : 'expanded'} 
-        ${isMobileOpen ? 'open' : ''}`}
-      >
-        <div className="sidebar-header">
-          <img
-            src={collapsed ? logoMini : logoFull}
-            alt="Logo"
-            className="sidebar-logo"
-            style={{ width: collapsed ? "40px" : "120px", transition: "width 0.3s" }}
-          />
-        </div>
+          backgroundColor="#ffffff"
+          collapsed={collapsed}
+          onMouseEnter={() => setCollapsed(false)}
+          onMouseLeave={() => setCollapsed(true)}
+          className={`sidebar-container ${collapsed ? 'collapsed' : 'expanded'}`}
+        >
+          <div className="sidebar-header">
+            <img
+              src={collapsed ? logoMini : logoFull}
+              alt="Logo"
+              className="sidebar-logo"
+              style={{ width: collapsed ? '40px' : '120px' }}
+            />
+          </div>
 
-        <Menu iconShape="circle" className="sidebar-menu sidebar__menu">
-          <MenuItem icon={<FaHome />} component={<a href="/home" />}>Dashboard</MenuItem>
-          <MenuItem icon={<FaPlus />} component={<a href="/adicionarproduto" />}>Adicionar Produto</MenuItem>
-          <MenuItem icon={<FaBox />} component={<a href="/estoque" />}>Visualizar Estoque</MenuItem>
-
-          {!status.loading && status.isAdmin && (
-            <MenuItem icon={<FaUser />} component={<a href="/cadastro-usuario" />}>
-              Funcionário
-            </MenuItem>
-          )}
-
-          <MenuItem icon={<FaSignOutAlt />} onClick={handleLogout}>Sair</MenuItem>
-        </Menu>
-      </Sidebar>
-        :
-        
-        <div className='sidebar-container-mobile'>
-          <button className="hamburger-btn" onClick={toggleMenuMobile} >
-            <FaBars />
-          </button>
-          {
-            isMobile === true ?
-
-            <Menu iconShape="circle" className="sidebar-menu">
+          <Menu iconShape="circle" className="sidebar-menu sidebar__menu">
             <MenuItem icon={<FaHome />} component={<a href="/home" />}>Dashboard</MenuItem>
             <MenuItem icon={<FaPlus />} component={<a href="/adicionarproduto" />}>Adicionar Produto</MenuItem>
             <MenuItem icon={<FaBox />} component={<a href="/estoque" />}>Visualizar Estoque</MenuItem>
             {!status.loading && status.isAdmin && (
-              <MenuItem icon={<FaUser />} component={<a href="/cadastro-usuario" />}>
-                Funcionário
-              </MenuItem>
+              <MenuItem icon={<FaUser />} component={<a href="/cadastro-usuario" />}>Funcionário</MenuItem>
             )}
             <MenuItem icon={<FaSignOutAlt />} onClick={handleLogout}>Sair</MenuItem>
-            </Menu>
-            :
-            <></>
-          }
-    
+          </Menu>
+        </Sidebar>
+      ) : (
+        <div className={`sidebar-container-mobile ${isMobileOpen ? 'open' : ''}`}>
+          <Menu iconShape="circle" className="sidebar-menu">
+            <MenuItem icon={<FaHome />} component={<a href="/home" />}>Dashboard</MenuItem>
+            <MenuItem icon={<FaPlus />} component={<a href="/adicionarproduto" />}>Adicionar Produto</MenuItem>
+            <MenuItem icon={<FaBox />} component={<a href="/estoque" />}>Visualizar Estoque</MenuItem>
+            {!status.loading && status.isAdmin && (
+              <MenuItem icon={<FaUser />} component={<a href="/cadastro-usuario" />}>Funcionário</MenuItem>
+            )}
+            <MenuItem icon={<FaSignOutAlt />} onClick={handleLogout}>Sair</MenuItem>
+          </Menu>
         </div>
-      }
-      
+      )}
     </>
   );
 };
