@@ -10,17 +10,31 @@ import { collection, doc, getDoc, query, where, getDocs } from 'firebase/firesto
 const MySidebar = ({ handleLogout }) => {
   const [collapsed, setCollapsed] = useState(true);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  
 
   const toggleMobileSidebar = () => {
     setIsMobileOpen(!isMobileOpen);
   };
 
+  const [largura, setLargura] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setLargura(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const [isMobile, setIsMobile] = useState(false)
+  const toggleMenuMobile = () => {
+    setIsMobile(!isMobile)
+  }
   const [status, setStatus] = useState({
     loading: true,
     isAdmin: false,
     error: null
   });
 
+  
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -71,22 +85,21 @@ const MySidebar = ({ handleLogout }) => {
   return (
     <>
       {/* Botão hambúrguer para dispositivos móveis */}
-      <button className="hamburger-btn" onClick={toggleMobileSidebar}>
+      {/* <button className="hamburger-btn" onClick={toggleMobileSidebar}>
         <FaBars />
-      </button>
-
-      <Sidebar backgroundColor="#ffffff"
+      </button> */}
+      {
+        largura >= 500 ? 
+        <Sidebar
+        backgroundColor="#ffffff"
         collapsed={collapsed}
         onMouseEnter={() => setCollapsed(false)}
         onMouseLeave={() => setCollapsed(true)}
-        className={`sidebar-container ${isMobileOpen ? 'open' : ''}`}
+        className={`sidebar-container 
+        ${collapsed ? 'collapsed' : 'expanded'} 
+        ${isMobileOpen ? 'open' : ''}`}
       >
-
-    
         <div className="sidebar-header">
-          <button className="hamburger-btn" onClick={toggleMobileSidebar}>
-            <FaBars />
-          </button>
           <img
             src={collapsed ? logoMini : logoFull}
             alt="Logo"
@@ -95,7 +108,7 @@ const MySidebar = ({ handleLogout }) => {
           />
         </div>
 
-        <Menu iconShape="circle" className="sidebar-menu">
+        <Menu iconShape="circle" className="sidebar-menu sidebar__menu">
           <MenuItem icon={<FaHome />} component={<a href="/home" />}>Dashboard</MenuItem>
           <MenuItem icon={<FaPlus />} component={<a href="/adicionarproduto" />}>Adicionar Produto</MenuItem>
           <MenuItem icon={<FaBox />} component={<a href="/estoque" />}>Visualizar Estoque</MenuItem>
@@ -109,6 +122,33 @@ const MySidebar = ({ handleLogout }) => {
           <MenuItem icon={<FaSignOutAlt />} onClick={handleLogout}>Sair</MenuItem>
         </Menu>
       </Sidebar>
+        :
+        
+        <div className='sidebar-container-mobile'>
+          <button className="hamburger-btn" onClick={toggleMenuMobile} >
+            <FaBars />
+          </button>
+          {
+            isMobile === true ?
+
+            <Menu iconShape="circle" className="sidebar-menu">
+            <MenuItem icon={<FaHome />} component={<a href="/home" />}>Dashboard</MenuItem>
+            <MenuItem icon={<FaPlus />} component={<a href="/adicionarproduto" />}>Adicionar Produto</MenuItem>
+            <MenuItem icon={<FaBox />} component={<a href="/estoque" />}>Visualizar Estoque</MenuItem>
+            {!status.loading && status.isAdmin && (
+              <MenuItem icon={<FaUser />} component={<a href="/cadastro-usuario" />}>
+                Funcionário
+              </MenuItem>
+            )}
+            <MenuItem icon={<FaSignOutAlt />} onClick={handleLogout}>Sair</MenuItem>
+            </Menu>
+            :
+            <></>
+          }
+    
+        </div>
+      }
+      
     </>
   );
 };

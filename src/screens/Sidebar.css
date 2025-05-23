@@ -1,9 +1,8 @@
 .hamburger-btn {
-  display: none;
-  position: absolute;
+  position: fixed;
   top: 15px;
   left: 20px;
-  z-index: 1100;
+  z-index: 2100;
   background: none;
   border: none;
   color: #333;
@@ -11,24 +10,48 @@
   cursor: pointer;
 }
 
-/* Estilos para a sidebar */
 .sidebar-container {
+  height: 100vh;
   background-color: #ffffff !important;
   border-right: 1px solid #eee;
-  height: 100vh;
-  position: fixed; /* Usar fixed para ela ficar fixa ao rolar */
   top: 0;
   left: 0;
-  width: 250px;
-  z-index: 1000;
   transition: all 0.3s ease;
-
+  z-index: 1000;
+  width: 80px;
+  position: relative;
+  overflow: hidden;
 }
 
-.react-pro-sidebar > div {
-  background-color: red !important;
+.sidebar-container.collapsed {
+  width: 80px;
+  position: relative;
+  overflow: hidden;
 }
 
+.sidebar-container.expanded {
+  width: 250px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1100;
+  overflow: visible;
+}
+
+.sidebar-container.collapsed .pro-menu-item span {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+.sidebar-container.expanded .pro-menu-item span {
+  width: 160px;
+  opacity: 1;
+  pointer-events: auto;
+  transition: width 0.3s ease, opacity 0.3s ease;
+}
 
 .sidebar-header {
   display: flex;
@@ -37,53 +60,95 @@
   padding: 20px;
 }
 
-/* Responsividade para dispositivos móveis */
-@media (max-width: 768px) {
-  .hamburger-btn {
-    display: block;
-  }
-}
-
-  @media (max-width: 768px) {
-    .sidebar-logo {
-      display: none;
-    }
-
-  .sidebar-container {
-    left: -250px;
-  }
-
-  .sidebar-container.open {
-    left: 0;
-  }
-
-
 .pro-menu-item {
-  width: 20px;
   display: flex;
-  align-items: start;
+  align-items: center;
   border-radius: 8px;
   transition: background-color 0.3s ease;
   color: #333;
-
 }
 
 .pro-menu-item a {
-
   text-decoration: none;
   color: inherit;
   width: 100%;
-
 }
 
 .pro-menu-item:hover {
   border-radius: 10px;
   color: #08325c;
   cursor: pointer;
-  transition: all;
 }
 
 .pro-menu-item:hover svg {
   color: #08325c;
 }
-};
+
+.sidebar-logo {
+  transition: width 0.3s ease, opacity 0.3s ease;
+  width: 120px;
+  opacity: 1;
+}
+
+.sidebar-container.collapsed .sidebar-header .logoFull {
+  width: 0;
+  opacity: 0;
+  transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+.sidebar-container-mobile{
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar__menu{
+  margin-top: 30px;
+}
+/* @media (max-width: 768px) {
+  .sidebar-container {
+    position: fixed;
+    top: 0;
+    left: -250px;
+    width: 250px;
+    height: 100vh;
+    z-index: 2000;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar-container.open {
+    left: 0;
+    width: 250px;
+    overflow-y: auto;
+  }
+
+  .sidebar-container.open .pro-menu-item span,
+  .sidebar-container.open .sidebar-header .logoFull {
+    width: 160px;
+    opacity: 1;
+    pointer-events: auto;
+    transition: none;
+  }
+
+  .sidebar-container:not(.open) .pro-menu-item,
+  .sidebar-container:not(.open) .sidebar-header {
+    display: none;
+  }
+
+  .sidebar-logo {
+    display: none;
+  }
+
+  .hamburger-btn {
+    display: block;
+  }
+
+  /* Desativa hover para abrir no mobile 
+  .sidebar-container.collapsed:hover {
+    width: 80px !important;
+  }
+
+  .sidebar-container.open.collapsed:hover {
+    width: 250px !important;
+  }
+} */
