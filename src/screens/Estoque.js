@@ -23,6 +23,7 @@ import EstoqueSide from "../images/estoque.png";
 import AddSide from "../images/botao-adicionar.png";
 import FuncionarioSide from "../images/equipe.png";
 import Logout from "../images/logout.png";
+import { toast } from "react-toastify";
 
 export const Estoque = () => {
   const [produtos, setProdutos] = useState([]);
@@ -58,7 +59,7 @@ export const Estoque = () => {
           const userData = userDoc.docs[0].data();
           fetchProdutos(currentUser.uid); // Passamos o UID do usuário logado para a função fetchProdutos
         } else {
-          console.error("Informações do usuário não encontradas.");
+          toast.error("Informações do usuário não encontradas.");
         }
       } else {
         setUser(null);
@@ -96,12 +97,12 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
         const produtosArray = querySnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         setProdutos(produtosArray);
       } else {
-        setErrorMessage("Erro ao buscar informações do usuário.");
+        toast.error("Erro ao buscar informações do usuário.");
         setProdutos([]);
       }
     } catch (error) {
-      console.error("Erro ao buscar produtos:", error);
-      setErrorMessage("Erro ao buscar produtos.");
+      toast.error("Erro ao buscar produtos:");
+      toast.error("Erro ao buscar produtos.");
       setProdutos([]);
     } finally {
       setIsLoading(false);
@@ -172,11 +173,11 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
     } else {
       const parsedQuantity = parseInt(quantidade, 10);
       if (isNaN(parsedQuantity) || parsedQuantity < 1) {
-        setErrorMessage("A quantidade mínima é 1.");
+        toast.error("A quantidade mínima é 1.");
       } else if (parsedQuantity > estoqueDisponivel) {
-        setErrorMessage(`Máximo de ${estoqueDisponivel} produtos disponíveis.`);
+        toast.error(`Máximo de ${estoqueDisponivel} produtos disponíveis.`);
       } else {
-        setErrorMessage("");
+        toast.error("");
         setQuantidades((prev) => ({ ...prev, [id]: parsedQuantity }));
       }
     }
@@ -268,7 +269,7 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
       setIsLoading(false);
       setQuantidades({});
     } catch (error) {
-      console.error("Erro ao confirmar pagamento:", error);
+      toast.error("Erro ao confirmar pagamento:", error);
       setIsLoading(false);
     }
   };
@@ -281,10 +282,10 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
         try {
           await deleteDoc(doc(db, "produtos", produtoId));
           setProdutos((prev) => prev.filter((p) => p.id !== produtoId));
-          mostrarMensagem("Produto excluído com sucesso!", "sucesso");
+          toast.success("Produto excluído com sucesso!");
         } catch (error) {
-          console.error("Erro ao excluir produto:", error);
-          mostrarMensagem("Erro ao excluir o produto.", "erro");
+          toast.error("Erro ao excluir produto:", error);
+          toast.success("Erro ao excluir o produto.");
         }
       }
     );
@@ -338,8 +339,8 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
       setImagem(null);
       fetchProdutos(user.uid);
     } catch (error) {
-      console.error("Erro no handleSaveEdit:", error); // <--- Adicione isso
-      mostrarMensagem("Erro ao salvar as alterações do produto.", "erro");    }
+      toast.error("Erro no handleSaveEdit:", error); // <--- Adicione isso
+      toast.error("Erro ao salvar as alterações do produto.", "erro");    }
   };
 
   const uploadImagem = async () => {

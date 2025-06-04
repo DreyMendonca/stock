@@ -5,6 +5,8 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import "./AdicionarProduto.css";
 import "../helpers/style.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export const AdicionarProduto = () => {
   const [produto, setProduto] = useState({
@@ -54,7 +56,7 @@ export const AdicionarProduto = () => {
       if (currentUser) {
         setUser(currentUser);
       } else {
-        mostrarMensagem("Você precisa estar logado para adicionar um produto.","erro");
+        toast.error("Você precisa estar logado para adicionar um produto.");
         navigate("/login");
       }
     });
@@ -65,12 +67,12 @@ export const AdicionarProduto = () => {
     auth
       .signOut()
       .then(() => {
-        console.log("Usuário deslogado com sucesso");
+        toast.success("Usuário deslogado com sucesso");
         setUser(null);
         navigate("/login");
       })
       .catch((error) => {
-        console.error("Erro ao deslogar:", error);
+        toast.error("Erro ao deslogar:", error);
       });
   };
 
@@ -84,7 +86,7 @@ export const AdicionarProduto = () => {
           .map((doc) => doc.data().nome);
         setCategorias(categoriasFirebase);
       } catch (error) {
-        console.error("Erro ao buscar categorias:", error);
+        toast.error("Erro ao buscar categorias:", error);
       }
     };
 
@@ -101,7 +103,7 @@ export const AdicionarProduto = () => {
 
   const handleAddProduto = async () => {
     if (!user) {
-      mostrarMensagem("Você precisa estar logado para adicionar um produto.", "erro");
+      toast.error("Você precisa estar logado para adicionar um produto.", "erro");
 
       return;
     }
@@ -110,7 +112,7 @@ export const AdicionarProduto = () => {
       isNaN(parseFloat(produto.precoCusto.replace(",", "."))) ||
       parseFloat(produto.precoCusto.replace(",", ".")) <= 0
     ) {
-      mostrarMensagem(
+      toast.error(
         "Preço de custo inválido, verifique se preencheu corretamente.",
         "erro"
       );
@@ -129,14 +131,14 @@ export const AdicionarProduto = () => {
       !imagem;
 
     if (camposVazios) {
-      mostrarMensagem(
+      toast.error(
         "Você precisa preencher o formulário para cadastrar o produto.",
         "erro"
       );
       return;
     }
     if (!produto.nome || produto.nome.trim() === "") {
-      mostrarMensagem('O campo "Nome" é obrigatório.', "erro");
+      toast.error('O campo "Nome" é obrigatório.', "erro");
       return;
     }
     if (
@@ -144,7 +146,7 @@ export const AdicionarProduto = () => {
       isNaN(parseFloat(produto.preco.replace(",", "."))) ||
       parseFloat(produto.preco.replace(",", ".")) <= 0
     ) {
-      mostrarMensagem("O preço deve ser um número maior que zero.");
+      toast.error("O preço deve ser um número maior que zero.");
       return;
     }
 
@@ -153,7 +155,7 @@ export const AdicionarProduto = () => {
       isNaN(parseFloat(produto.precoCusto.replace(",", "."))) ||
       parseFloat(produto.precoCusto.replace(",", ".")) <= 0
     ) {
-      mostrarMensagem("O preço de custo deve ser um número maior que zero.");
+      toast.error("O preço de custo deve ser um número maior que zero.");
       return;
     }
 
@@ -162,19 +164,19 @@ export const AdicionarProduto = () => {
       isNaN(parseInt(produto.quantidade)) ||
       parseInt(produto.quantidade) <= 0
     ) {
-      mostrarMensagem(
+      toast.error(
         "A quantidade deve ser um número inteiro maior que zero.","erro"
       );
       return;
     }
 
     if (!produto.categoria || produto.categoria.trim() === "") {
-      mostrarMensagem("A categoria é obrigatória.", "erro");
+      toast.error("A categoria é obrigatória.", "erro");
       return;
     }
 
     if (!produto.validade) {
-      mostrarMensagem("A data de validade é obrigatória.", "erro");
+      toast.error("A data de validade é obrigatória.", "erro");
       return;
     } else {
       const hoje = new Date();
@@ -183,7 +185,7 @@ export const AdicionarProduto = () => {
       umMesDepois.setMonth(hoje.getMonth() + 1);
 
       if (validade < umMesDepois) {
-        mostrarMensagem(
+        toast.error(
           "A validade deve ser de pelo menos 1 mês a partir de hoje.","erro"
         );
         return;
@@ -191,12 +193,12 @@ export const AdicionarProduto = () => {
     }
 
     if (!produto.lote || produto.lote.trim() === "") {
-      mostrarMensagem('O campo "Lote" é obrigatório.',"erro");
+      toast.error('O campo "Lote" é obrigatório.',"erro");
       return;
     }
 
     if (!imagem) {
-      mostrarMensagem("A imagem do produto é obrigatória.","erro");
+      toast.error("A imagem do produto é obrigatória.","erro");
       return;
     }
 
@@ -221,7 +223,7 @@ export const AdicionarProduto = () => {
         data: new Date(),
       });
 
-      mostrarMensagem("Produto adicionado com sucesso!", "sucesso");
+      toast.sucess("Produto adicionado com sucesso!", "sucesso");
       setProduto({
         nome: "",
         preco: "",
@@ -236,7 +238,7 @@ export const AdicionarProduto = () => {
       });
       setImagem(null);
     } catch (error) {
-      mostrarMensagem("Erro ao adicionar produto.", "erro");
+      toast.error("Erro ao adicionar produto.", "erro");
     }
   };
   const getMinValidade = () => {
@@ -271,8 +273,8 @@ export const AdicionarProduto = () => {
         setNovaCategoria("");
         setMostrarCriarCategoria(false);
       } catch (error) {
-        console.error("Erro ao salvar categoria:", error);
-        mostrarMensagem("Erro ao salvar a categoria.", "error");
+        toast.error("Erro ao salvar categoria:", error);
+        toast.error("Erro ao salvar a categoria.", "error");
       }
     }
   };
