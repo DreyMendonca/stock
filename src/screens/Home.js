@@ -12,6 +12,8 @@ import {
   doc,
 } from "firebase/firestore";
 import { Bar, Pie, Line, Radar, PolarArea } from "react-chartjs-2";
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import LogoSide from "../images/logoSide.png";
 import EstoqueSide from "../images/estoque.png";
 import AddSide from "../images/botao-adicionar.png";
@@ -48,8 +50,8 @@ ChartJS.register(
 
 export const Home = () => {
   const navigate = useNavigate();
-const [mensagemErro, setMensagemErro] = useState("");
-    const [tipoMensagem, setTipoMensagem] = useState("");
+  const [mensagemErro, setMensagemErro] = useState("");
+  const [tipoMensagem, setTipoMensagem] = useState("");
   const [produtos, setProdutos] = useState([]);
   const [user, setUser] = useState(null);
   const [nomeUsuario, setNomeUsuario] = useState("");
@@ -57,7 +59,7 @@ const [mensagemErro, setMensagemErro] = useState("");
   const [historicoVendas, setHistoricoVendas] = useState([]);
   const [historicoEntradas, setHistoricoEntradas] = useState([]);
 
- 
+
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -107,26 +109,73 @@ const [mensagemErro, setMensagemErro] = useState("");
     data: entrada.data ? entrada.data.toDate().toLocaleString() : "Sem data", // Formata a data
   }));
 
-   const mostrarMensagem = (mensagem, tipo = "erro") => {
+  const mostrarMensagem = (mensagem, tipo = "erro") => {
     setMensagemErro(mensagem);
     setTipoMensagem(tipo);
   };
 
   const limparHistoricoEntradas = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "historicoEntradas"));
+  try {
+    const querySnapshot = await getDocs(collection(db, "historicoEntradas"));
 
-      const deletePromises = querySnapshot.docs.map((documento) =>
-        deleteDoc(doc(db, "historicoEntradas", documento.id))
-      );
-
-      await Promise.all(deletePromises);
-
-      mostrarMensagem("Histórico de entradas limpo com sucesso", "sucesso");
-    } catch (error) {
-      mostrarMensagem("Erro ao limpar o histórico.", "erro");
+    if (querySnapshot.empty) {
+      toast.info("O histórico de entradas já está vazio.");
+      return;
     }
+
+    const deletePromises = querySnapshot.docs.map((documento) =>
+      deleteDoc(doc(db, "historicoEntradas", documento.id))
+    );
+
+    await Promise.all(deletePromises);
+
+    toast.success("Histórico de entradas limpo com sucesso.");
+  } catch (error) {
+    toast.error("Erro ao limpar o histórico de entradas: " + error.message);
+  }
+};
+
+
+  const limparHistoricoVendas = async () => {
+  try {
+    const querySnapshot = await getDocs(collection(db, "historicoVendas"));
+
+    if (querySnapshot.empty) {
+      toast.info("O histórico de vendas já está vazio.");
+      return;
+    }
+
+    const deletePromises = querySnapshot.docs.map((documento) =>
+      deleteDoc(doc(db, "historicoVendas", documento.id))
+    );
+
+    await Promise.all(deletePromises);
+
+    toast.success("Histórico de vendas limpo com sucesso.");
+  } catch (error) {
+    toast.error("Erro ao limpar o histórico de vendas: " + error.message);
+  }
+};
+
+
+  const exportarVendasCSV = () => {
+    if (historicoVendas.length === 0) {
+      mostrarMensagem("Nenhuma venda para exportar.", "erro");
+      return;
+    }
+
+    const dadosCSV = historicoVendas.map((venda) => ({
+      nome: venda.nome,
+      quantidadeVendida: venda.quantidadeVendida,
+      preco: venda.preco?.toFixed(2) || "0.00",
+      precoCusto: venda.precoCusto?.toFixed(2) || "0.00",
+      lucroTotal: venda.lucroTotal?.toFixed(2) || "0.00",
+      data: venda.dataVenda ? venda.dataVenda.toDate().toLocaleString() : "Sem data",
+    }));
+
+    exportarCSV(dadosCSV, "historico_vendas.csv");
   };
+
 
   const fetchProdutos = async (userId) => {
     try {
@@ -502,15 +551,30 @@ const [mensagemErro, setMensagemErro] = useState("");
 
           <section className="historico-vendas stock-summary">
             <h2>Histórico de Vendas</h2>
+
+            <div className="botoes-container">
+              <button className="button-csv" onClick={exportarVendasCSV}>
+                Baixar CSV
+              </button>
+              <button className="limpar-historico-btn" onClick={limparHistoricoVendas}>
+                Limpar Histórico
+              </button>
+            </div>
+
             {historicoVendas.length > 0 ? (
               <ul>
                 {historicoVendas.map((venda, index) => (
                   <li key={index}>
-                    Produto: {venda.nome} - Quantidade Vendida:{" "}
-                    {venda.quantidadeVendida} - Data:{" "}
-                    {venda.dataVenda
+                    <p><strong>Produto:</strong> {venda.nome}</p>
+                    <p><strong>Quantidade Vendida:</strong> {venda.quantidadeVendida}</p>
+                    <p><strong>Preço:</strong> R$ {venda.preco?.toFixed(2) || "0.00"}</p>
+                    <p><strong>Custo:</strong> R$ {venda.precoCusto?.toFixed(2) || "0.00"}</p>
+                    <p><strong>Lucro:</strong> R$ {venda.lucroTotal?.toFixed(2) || "0.00"}</p>
+                    <p><strong>Data:</strong> {venda.dataVenda
                       ? new Date(venda.dataVenda.toDate()).toLocaleDateString()
                       : "Data indisponível"}
+                    </p>
+                    <hr />
                   </li>
                 ))}
               </ul>
@@ -519,40 +583,43 @@ const [mensagemErro, setMensagemErro] = useState("");
             )}
           </section>
 
+
+
           <section className="historico-entradas stock-summary">
             <h2>Histórico de Entradas</h2>
 
             <div className="botoes-container">
-              <button
-                className="button-csv"
-                onClick={() => exportarCSV(entradasFormatadas, "entradas.csv")}
-              >
+              <button className="button-csv"onClick={() => exportarCSV(entradasFormatadas, "entradas.csv")}>
                 Baixar CSV
               </button>
-              <button
-                className="limpar-historico-btn"
-                onClick={limparHistoricoEntradas}
-              >
+              <button className="limpar-historico-btn" onClick={limparHistoricoEntradas}>
                 Limpar Histórico
               </button>
             </div>
 
             {historicoEntradas.length > 0 ? (
-              <ul>
-                {historicoEntradas.map((entrada, index) => (
-                  <li key={index}>
-                    Produto: {entrada.nome} - Quantidade: {entrada.quantidade} -
-                    Data:{" "}
-                    {entrada.data
-                      ? new Date(entrada.data.toDate()).toLocaleDateString()
-                      : "Data indisponível"}
-                  </li>
-                ))}
-              </ul>
+              <div style={{ maxHeight: '155px', overflowY: 'auto' }}>
+                <ul>
+                  {historicoEntradas.map((entrada, index) => (
+                    <li key={index}>
+                      <p><strong>Produto:</strong> {entrada.nome}</p>
+                      <p><strong>Quantidade:</strong> {entrada.quantidade}</p>
+                      <p><strong>Preço de Custo:</strong> R$ {entrada.precoCusto}</p>
+                      <p><strong>Data:</strong> {entrada.data
+                        ? new Date(entrada.data.toDate()).toLocaleDateString()
+                        : "Data indisponível"}
+                      </p>
+                      <hr />
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ) : (
               <p>Nenhuma entrada registrada.</p>
             )}
           </section>
+
+
 
           <section className="grafico-pizza stock-summary">
             <h2>Produtos Mais Vendidos</h2>

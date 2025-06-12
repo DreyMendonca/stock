@@ -122,7 +122,7 @@ const CadastroUsuarioComum = () => {
     try {
       await updateDoc(doc(db, "usuarios", id), { role: novoRole });
       setFuncionarios(funcionarios.map(f => (f.id === id ? { ...f, role: novoRole } : f)));
-      toast.success(`Role do usuário atualizado para ${novoRole}`);
+      toast.success(`Usuário atualizado para ${novoRole}`);
     } catch (error) {
       toast.error("Erro ao alterar o role do usuário");
     }

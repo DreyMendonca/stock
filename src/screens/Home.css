@@ -185,3 +185,8 @@
     padding-right: 10px;
 }
 
+.historico-entradas {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 10px;
+}

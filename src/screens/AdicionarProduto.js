@@ -223,7 +223,7 @@ export const AdicionarProduto = () => {
         data: new Date(),
       });
 
-      toast.sucess("Produto adicionado com sucesso!", "sucesso");
+      toast.success("Produto adicionado com sucesso!", "sucesso");
       setProduto({
         nome: "",
         preco: "",

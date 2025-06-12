@@ -68,7 +68,7 @@ export const Estoque = () => {
     });
     return () => unsubscribe();
   }, []);
-const [onConfirmCallback, setOnConfirmCallback] = useState(null);
+  const [onConfirmCallback, setOnConfirmCallback] = useState(null);
 
   const mostrarMensagem = (mensagem, tipo = "erro", onConfirm = null) => {
     setMensagemErro(mensagem);
@@ -164,24 +164,28 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
   };
 
   const handleQuantityChange = (id, quantidade) => {
-    const produto = produtos.find((p) => p.id === id);
-    const estoqueDisponivel = produto?.quantidade || 0;
+  const produto = produtos.find((p) => p.id === id);
+  const estoqueDisponivel = produto?.quantidade || 0;
 
-    if (quantidade === "") {
-      setErrorMessage("");
+  if (quantidade === "") {
+    setErrorMessage("");
+    setQuantidades((prev) => ({ ...prev, [id]: "" }));
+  } else {
+    const parsedQuantity = parseInt(quantidade, 10);
+
+    if (isNaN(parsedQuantity) || parsedQuantity < 1) {
+      setErrorMessage("A quantidade mínima é 1.");
       setQuantidades((prev) => ({ ...prev, [id]: "" }));
+    } else if (parsedQuantity > estoqueDisponivel) {
+      setErrorMessage(`Máximo de ${estoqueDisponivel} produtos disponíveis.`);
+      setQuantidades((prev) => ({ ...prev, [id]: estoqueDisponivel }));
     } else {
-      const parsedQuantity = parseInt(quantidade, 10);
-      if (isNaN(parsedQuantity) || parsedQuantity < 1) {
-        toast.error("A quantidade mínima é 1.");
-      } else if (parsedQuantity > estoqueDisponivel) {
-        toast.error(`Máximo de ${estoqueDisponivel} produtos disponíveis.`);
-      } else {
-        toast.error("");
-        setQuantidades((prev) => ({ ...prev, [id]: parsedQuantity }));
-      }
+      setErrorMessage("");
+      setQuantidades((prev) => ({ ...prev, [id]: parsedQuantity }));
     }
-  };
+  }
+};
+
 
   const handleCalcular = () => {
     let total = 0;
@@ -255,10 +259,17 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
           const produtoRef = doc(db, "produtos", produto.id);
           await updateDoc(produtoRef, { quantidade: novoEstoque });
 
+          const preco = parseFloat(produto.preco) || 0;
+          const precoCusto = parseFloat(produto.precoCusto) || 0;
+          const lucroTotal = (preco - precoCusto) * quantidadeVendida;
+
           await addDoc(collection(db, "historicoVendas"), {
             produtoId: produto.id,
             nome: produto.nome,
             quantidadeVendida,
+            preco,
+            precoCusto,
+            lucroTotal,
             dataVenda: new Date(),
             userId: user.uid,
           });
@@ -266,12 +277,14 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
       }
 
       setPaymentCompleted(true);
-      setIsLoading(false);
-      setQuantidades({});
-    } catch (error) {
-      toast.error("Erro ao confirmar pagamento:", error);
-      setIsLoading(false);
-    }
+    setIsLoading(false);
+    setQuantidades({});
+
+    toast.success("Pagamento concluído com sucesso!"); 
+  } catch (error) {
+    toast.error("Erro ao confirmar pagamento: " + error.message); 
+    setIsLoading(false);
+  }
   };
 
   const handleDelete = async (produtoId) => {
@@ -340,7 +353,8 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
       fetchProdutos(user.uid);
     } catch (error) {
       toast.error("Erro no handleSaveEdit:", error); // <--- Adicione isso
-      toast.error("Erro ao salvar as alterações do produto.", "erro");    }
+      toast.error("Erro ao salvar as alterações do produto.", "erro");
+    }
   };
 
   const uploadImagem = async () => {
@@ -392,8 +406,8 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
                 tipoMensagem === "sucesso"
                   ? "mensagem-sucesso"
                   : tipoMensagem === "confirmacao"
-                  ? "mensagem-confirmacao"
-                  : "mensagem-erro"
+                    ? "mensagem-confirmacao"
+                    : "mensagem-erro"
               }
             >
               <button
@@ -564,21 +578,21 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
                       <br></br>
                       {produto.validade
                         ? (() => {
-                            const hoje = new Date();
-                            const validade = new Date(produto.validade);
-                            const diff = validade - hoje;
-                            const diasRestantes = Math.ceil(
-                              diff / (1000 * 60 * 60 * 24)
-                            );
+                          const hoje = new Date();
+                          const validade = new Date(produto.validade);
+                          const diff = validade - hoje;
+                          const diasRestantes = Math.ceil(
+                            diff / (1000 * 60 * 60 * 24)
+                          );
 
-                            if (diasRestantes < 0) {
-                              return "VENCIDO 💀";
-                            } else if (diasRestantes <= 20) {
-                              return `⚠️ Faltam ${diasRestantes} dias para vencer!`;
-                            } else {
-                              return `${diasRestantes} dias para vencer`;
-                            }
-                          })()
+                          if (diasRestantes < 0) {
+                            return "VENCIDO 💀";
+                          } else if (diasRestantes <= 20) {
+                            return `⚠️ Faltam ${diasRestantes} dias para vencer!`;
+                          } else {
+                            return `${diasRestantes} dias para vencer`;
+                          }
+                        })()
                         : "Sem info 😵"}
                     </td>
 
@@ -790,13 +804,29 @@ const [onConfirmCallback, setOnConfirmCallback] = useState(null);
               >
                 Confirmar Pagamento
               </button>
+              <button
+      className="btn-fechar"
+      style={{
+        position: "absolute",
+        top: "10px",
+        right: "10px",
+        background: "transparent",
+        border: "none",
+        fontSize: "20px",
+        cursor: "pointer",
+        color: "#333",
+      }}
+      onClick={() => setShowQRCode(false)}
+      aria-label="Fechar tela de QR Code"
+    >
+      &times;
+    </button> 
             </div>
           </div>
         )}
 
         {paymentCompleted && (
           <div className="payment-success">
-            <p>Pagamento concluído! Seus produtos foram vendidos.</p>
           </div>
         )}
       </div>
